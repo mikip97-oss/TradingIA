@@ -35,3 +35,15 @@ Next increments:
 4. Replace `backtest.py` and `ki_backtest.py` with compatibility wrappers around the new engine.
 5. Add model walk-forward training, probability calibration, and threshold reports.
 6. Add realistic intraday costs, spread assumptions, liquidity limits, and market calendar support.
+## Increment 2: Strategy Lab
+
+Dieser Schritt fuehrt eine modulare Strategie-Schicht ein. Mehrere Strategien koennen jetzt dieselbe Event-Driven-Backtesting-Engine nutzen und direkt miteinander verglichen werden.
+
+Enthalten:
+
+- Einheitliche Strategie-Schnittstelle mit `on_bar(bar) -> list[SignalEvent]`.
+- Austauschbare Strategien fuer Buy & Hold, EMA-Crossover, RSI-Reversion und Breakout.
+- Strategy Lab zur Ausfuehrung mehrerer Strategien auf demselben Datensatz.
+- Leaderboard mit Trades, Endkapital, Gesamtrendite und maximalem Drawdown.
+- Tests und deutsche Dokumentation fuer den neuen Research-Baustein.
+
