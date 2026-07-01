@@ -1,0 +1,20 @@
+# Python
+__pycache__/
+*.py[cod]
+
+# Virtuelle Umgebung
+.venv/
+
+# VS Code
+.vscode/
+
+# KI-Daten
+ai/model.pkl
+ai/dataset.csv
+
+# Logs
+logs/
+
+# Betriebssystem
+.DS_Store
+Thumbs.db
