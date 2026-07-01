@@ -1,0 +1,9 @@
+pandas
+pytest
+ta
+yfinance
+joblib
+xgboost
+scikit-learn
+PySide6
+matplotlib
