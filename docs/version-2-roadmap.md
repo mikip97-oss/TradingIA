@@ -61,4 +61,7 @@ Dieser Schritt fuehrt einen modularen Grid-Search-Optimizer fuer Strategieparame
 ## Sprint 7: Research Runner
 
 Dieser Schritt fuehrt mit `research_runner.py` einen ausfuehrbaren Einstiegspunkt fuer Research-Experimente ein. Der Runner erzeugt Beispieldaten, startet Strategy-Lab- und Parameter-Optimizer-Laeufe, gibt Leaderboards aus und exportiert Reports ueber das Research Dashboard. Bestehende GUI-, Scanner- und Backtesting-Module bleiben unveraendert.
+## MVP-Speed-Modus: Großer Aktien-Scanner
+
+Dieser Schritt erweitert die Universe-Logik fuer einen groesseren Scanner. S&P 500 und Nasdaq 100 koennen geladen, normalisiert und dedupliziert werden. Die Fallback-Liste bleibt erhalten, und `TOP_ANZAHL` kann 50 Kandidaten anzeigen. GUI und `scanner.py` bleiben in diesem Schritt unveraendert.
 
