@@ -44,7 +44,14 @@ def test_strategy_lab_runs_multiple_interchangeable_strategies():
     leaderboard = lab.leaderboard(results)
 
     assert len(results) == 3
-    assert set(leaderboard["strategy"]) == {"buy_and_hold", "ema_crossover", "breakout"}
+    assert list(leaderboard.columns) == [
+        "Strategie-Name",
+        "Ending Equity",
+        "Return %",
+        "Max Drawdown %",
+        "Anzahl Trades",
+    ]
+    assert set(leaderboard["Strategie-Name"]) == {"buy_and_hold", "ema_crossover", "breakout"}
     assert all("ending_equity" in result.result.metrics for result in results)
 
 
@@ -70,3 +77,37 @@ def test_rsi_reversion_uses_same_strategy_interface():
 
     assert signals
     assert all(signal.symbol == "AAPL" for signal in signals)
+
+def test_strategy_lab_leaderboard_sorts_by_return_descending():
+    bars = make_bars([100, 101, 102, 103, 104, 105, 106, 107, 108, 109])
+    lab = StrategyLab(BacktestEngine(initial_cash=10_000))
+
+    results = lab.run(
+        bars,
+        [
+            StrategySpec("small_allocation", BuyAndHoldStrategy, {"target_percent": 0.25}),
+            StrategySpec("large_allocation", BuyAndHoldStrategy, {"target_percent": 0.75}),
+        ],
+    )
+
+    leaderboard = lab.leaderboard(results)
+
+    assert leaderboard.iloc[0]["Strategie-Name"] == "large_allocation"
+    assert leaderboard.iloc[0]["Return %"] >= leaderboard.iloc[1]["Return %"]
+    assert leaderboard.iloc[0]["Anzahl Trades"] == 1
+
+
+def test_strategy_lab_empty_leaderboard_has_stable_columns():
+    lab = StrategyLab(BacktestEngine(initial_cash=10_000))
+
+    leaderboard = lab.leaderboard([])
+
+    assert leaderboard.empty
+    assert list(leaderboard.columns) == [
+        "Strategie-Name",
+        "Ending Equity",
+        "Return %",
+        "Max Drawdown %",
+        "Anzahl Trades",
+    ]
+

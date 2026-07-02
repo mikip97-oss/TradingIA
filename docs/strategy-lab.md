@@ -38,6 +38,18 @@ leaderboard = lab.leaderboard(results)
 
 `bars` ist ein pandas DataFrame mit den Spalten `symbol`, `timestamp`, `open`, `high`, `low`, `close` und `volume`.
 
+## Leaderboard
+
+Das Strategy Lab erzeugt ein sortiertes Leaderboard, damit mehrere Strategien auf demselben Datensatz direkt vergleichbar sind. Die Ausgabe enthaelt bewusst nur die wichtigsten Research-Kennzahlen:
+
+- Strategie-Name
+- Ending Equity
+- Return %
+- Max Drawdown %
+- Anzahl Trades
+
+Sortiert wird zuerst nach `Return %`, danach nach `Max Drawdown %` und `Ending Equity`. Dadurch steht die staerkste Strategie im getesteten Zeitraum oben, ohne die Backtesting-Engine oder bestehende GUI-/Scanner-Module zu veraendern.
+
 ## Rueckwaertskompatibilitaet
 
 Die bestehende GUI und der Scanner werden nicht veraendert. Das Strategy Lab liegt als neue Research-Schicht unter `tradingia/` und kann unabhaengig getestet und erweitert werden.

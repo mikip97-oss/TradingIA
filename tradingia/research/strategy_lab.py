@@ -9,6 +9,15 @@ from tradingia.backtesting.engine import BacktestEngine, BacktestResult
 from tradingia.strategies.registry import StrategySpec
 
 
+LEADERBOARD_COLUMNS = [
+    "Strategie-Name",
+    "Ending Equity",
+    "Return %",
+    "Max Drawdown %",
+    "Anzahl Trades",
+]
+
+
 @dataclass
 class StrategyLabResult:
     strategy_name: str
@@ -20,6 +29,15 @@ class StrategyLabResult:
             "strategy": self.strategy_name,
             "trades": len(self.result.trades),
             **self.result.metrics,
+        }
+
+    def leaderboard_row(self) -> dict[str, float | str | int]:
+        return {
+            "Strategie-Name": self.strategy_name,
+            "Ending Equity": self.result.metrics.get("ending_equity", 0.0),
+            "Return %": self.result.metrics.get("total_return_pct", 0.0),
+            "Max Drawdown %": self.result.metrics.get("max_drawdown_pct", 0.0),
+            "Anzahl Trades": len(self.result.trades),
         }
 
 
@@ -38,12 +56,12 @@ class StrategyLab:
         return results
 
     def leaderboard(self, results: list[StrategyLabResult]) -> pd.DataFrame:
-        rows = [result.metrics for result in results]
+        rows = [result.leaderboard_row() for result in results]
         if not rows:
-            return pd.DataFrame(columns=["strategy", "trades", "ending_equity", "total_return_pct", "max_drawdown_pct"])
+            return pd.DataFrame(columns=LEADERBOARD_COLUMNS)
 
-        leaderboard = pd.DataFrame(rows)
+        leaderboard = pd.DataFrame(rows, columns=LEADERBOARD_COLUMNS)
         return leaderboard.sort_values(
-            by=["total_return_pct", "max_drawdown_pct"],
-            ascending=[False, False],
+            by=["Return %", "Max Drawdown %", "Ending Equity"],
+            ascending=[False, False, False],
         ).reset_index(drop=True)
