@@ -119,22 +119,24 @@ class TradingIAApp(QMainWindow):
         self.table.setHorizontalHeaderLabels(df.columns)
 
         for row in range(len(df)):
-            ki = float(df.iloc[row]["KI %"])
-            endscore = float(df.iloc[row]["Endscore"])
+            ki = float(df.iloc[row].get("KI %", 0))
+            score = float(df.iloc[row].get("TradeScore", 0))
 
             for col in range(len(df.columns)):
                 value = str(df.iloc[row, col])
                 item = QTableWidgetItem(value)
 
-                # Farb-Logik nach KI und Endscore
-                if ki >= 70 and endscore >= 60:
-                    item.setBackground(QColor(0, 150, 70))      # stark grün
+                if score >= 70:
+                    item.setBackground(QColor(0, 150, 70))
                     item.setForeground(QColor(255, 255, 255))
-                elif ki >= 60:
-                    item.setBackground(QColor(255, 190, 80))    # gelb/orange
+                elif score >= 60:
+                    item.setBackground(QColor(255, 190, 80))
                     item.setForeground(QColor(0, 0, 0))
-                elif ki < 60:
-                    item.setBackground(QColor(90, 90, 90))      # grau
+                elif score >= 50:
+                    item.setBackground(QColor(120, 120, 120))
+                    item.setForeground(QColor(255, 255, 255))
+                else:
+                    item.setBackground(QColor(90, 90, 90))
                     item.setForeground(QColor(220, 220, 220))
 
                 self.table.setItem(row, col, item)
@@ -222,8 +224,6 @@ class TradingIAApp(QMainWindow):
 
 
 app = QApplication(sys.argv)
-
 window = TradingIAApp()
 window.show()
-
 sys.exit(app.exec())
