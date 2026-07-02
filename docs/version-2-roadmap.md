@@ -46,4 +46,7 @@ Enthalten:
 - Strategy Lab zur Ausfuehrung mehrerer Strategien auf demselben Datensatz.
 - Leaderboard mit Trades, Endkapital, Gesamtrendite und maximalem Drawdown.
 - Tests und deutsche Dokumentation fuer den neuen Research-Baustein.
+## Sprint 3: Market Regime Engine
+
+Dieser Schritt fuehrt eine eigenstaendige Market-Regime-Komponente ein. Sie erkennt Bull-, Bear- und Sideways-Maerkte anhand von EMA-Struktur, ADX, ATR und Volatilitaet. Die Komponente bleibt unabhaengig von Strategien, GUI, Scanner und Backtesting Engine, damit das Strategy Lab spaeter Regime als Kontext oder Filter nutzen kann.
 
