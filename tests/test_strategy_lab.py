@@ -3,6 +3,7 @@ from datetime import datetime, timedelta
 import pandas as pd
 
 from tradingia.backtesting.engine import BacktestEngine
+from tradingia.regime import MarketRegimeEngine
 from tradingia.research.strategy_lab import StrategyLab
 from tradingia.strategies.breakout import BreakoutStrategy
 from tradingia.strategies.buy_and_hold import BuyAndHoldStrategy
@@ -46,6 +47,7 @@ def test_strategy_lab_runs_multiple_interchangeable_strategies():
     assert len(results) == 3
     assert list(leaderboard.columns) == [
         "Strategie-Name",
+        "Regime",
         "Ending Equity",
         "Return %",
         "Max Drawdown %",
@@ -105,9 +107,53 @@ def test_strategy_lab_empty_leaderboard_has_stable_columns():
     assert leaderboard.empty
     assert list(leaderboard.columns) == [
         "Strategie-Name",
+        "Regime",
         "Ending Equity",
         "Return %",
         "Max Drawdown %",
         "Anzahl Trades",
     ]
+
+def test_strategy_lab_selects_strategies_for_detected_bull_regime():
+    bars = make_bars([100 + index * 0.9 for index in range(90)])
+    lab = StrategyLab(BacktestEngine(initial_cash=10_000))
+    regime_engine = MarketRegimeEngine(fast_ema_window=5, slow_ema_window=15, trend_adx_threshold=15)
+
+    results = lab.run(bars, default_strategy_specs(), regime_engine=regime_engine)
+    leaderboard = lab.leaderboard(results)
+
+    assert set(leaderboard["Strategie-Name"]) == {"buy_and_hold", "ema_crossover", "breakout"}
+    assert set(leaderboard["Regime"]) == {"bull"}
+    assert "rsi_reversion" not in set(leaderboard["Strategie-Name"])
+
+
+def test_strategy_lab_runs_all_strategies_when_no_regime_engine_is_provided():
+    bars = make_bars([100, 101, 102, 103, 104, 105])
+    lab = StrategyLab(BacktestEngine(initial_cash=10_000))
+
+    results = lab.run(
+        bars,
+        [
+            StrategySpec("buy_and_hold", BuyAndHoldStrategy, {"target_percent": 0.5}),
+            StrategySpec("breakout", BreakoutStrategy, {"lookback": 2, "target_percent": 0.5}),
+        ],
+    )
+    leaderboard = lab.leaderboard(results)
+
+    assert set(leaderboard["Strategie-Name"]) == {"buy_and_hold", "breakout"}
+    assert set(leaderboard["Regime"]) == {"unknown"}
+
+def test_strategy_lab_uses_sideways_selection_for_mixed_symbol_regimes():
+    bull = make_bars([100 + index * 0.9 for index in range(90)])
+    bear = make_bars([180 - index * 0.9 for index in range(90)])
+    bear["symbol"] = "MSFT"
+    bars = pd.concat([bull, bear], ignore_index=True)
+    lab = StrategyLab(BacktestEngine(initial_cash=10_000))
+    regime_engine = MarketRegimeEngine(fast_ema_window=5, slow_ema_window=15, trend_adx_threshold=15)
+
+    results = lab.run(bars, default_strategy_specs(), regime_engine=regime_engine)
+    leaderboard = lab.leaderboard(results)
+
+    assert set(leaderboard["Regime"]) == {"sideways"}
+    assert set(leaderboard["Strategie-Name"]) == {"rsi_reversion", "breakout"}
 

@@ -58,4 +58,7 @@ Dieser Schritt fuehrt eine eigenstaendige Research-Auswertung fuer Backtest-Erge
 ## Sprint 6: Parameter Optimizer
 
 Dieser Schritt fuehrt einen modularen Grid-Search-Optimizer fuer Strategieparameter ein. Mehrere Parameter-Kombinationen einer Strategie koennen ueber dieselbe Event-Driven-Backtesting-Engine getestet und als Leaderboard verglichen werden. Bestehende GUI-, Scanner- und Backtesting-Module bleiben unveraendert.
+## Sprint 7: Research Runner
+
+Dieser Schritt fuehrt mit `research_runner.py` einen ausfuehrbaren Einstiegspunkt fuer Research-Experimente ein. Der Runner erzeugt Beispieldaten, startet Strategy-Lab- und Parameter-Optimizer-Laeufe, gibt Leaderboards aus und exportiert Reports ueber das Research Dashboard. Bestehende GUI-, Scanner- und Backtesting-Module bleiben unveraendert.
 

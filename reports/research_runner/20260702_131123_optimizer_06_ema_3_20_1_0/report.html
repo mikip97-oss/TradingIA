@@ -1,0 +1,354 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <title>TradingIA Research Report - optimizer_06_ema_3_20_1.0</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 32px; color: #1f2933; }
+    h1, h2 { color: #102a43; }
+    table { border-collapse: collapse; width: 100%; margin-bottom: 28px; }
+    th, td { border: 1px solid #d9e2ec; padding: 8px; text-align: right; }
+    th { background: #f0f4f8; }
+    td:first-child, th:first-child { text-align: left; }
+  </style>
+</head>
+<body>
+  <h1>TradingIA Research Report</h1>
+  <p><strong>Report:</strong> optimizer_06_ema_3_20_1.0</p>
+  <p><strong>Erstellt:</strong> 2026-07-02T13:11:23</p>
+
+  <h2>Kennzahlen</h2>
+  <table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th>Generated At</th>
+      <th>Report Name</th>
+      <th>Ending Equity</th>
+      <th>Return %</th>
+      <th>Max Drawdown %</th>
+      <th>Winrate %</th>
+      <th>Profit Factor</th>
+      <th>Sharpe Ratio</th>
+      <th>Sortino Ratio</th>
+      <th>Durchschnittlicher Gewinn</th>
+      <th>Durchschnittlicher Verlust</th>
+      <th>Anzahl Trades</th>
+      <th>Durchschnittliche Haltedauer</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>2026-07-02T13:11:23</td>
+      <td>optimizer_06_ema_3_20_1.0</td>
+      <td>12812.0887</td>
+      <td>28.1209</td>
+      <td>-5.2401</td>
+      <td>100.0</td>
+      <td>0.0</td>
+      <td>2.9485</td>
+      <td>2.2972</td>
+      <td>774.1937</td>
+      <td>0.0</td>
+      <td>1</td>
+      <td>53.0</td>
+    </tr>
+  </tbody>
+</table>
+
+  <h2>Equity Curve</h2>
+  <table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th>timestamp</th>
+      <th>symbol</th>
+      <th>cash</th>
+      <th>equity</th>
+      <th>return_pct</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>2024-04-30 09:30:00</td>
+      <td>AAPL</td>
+      <td>-0.751334</td>
+      <td>12097.248666</td>
+      <td>-2.643234</td>
+    </tr>
+    <tr>
+      <td>2024-05-01 09:30:00</td>
+      <td>AAPL</td>
+      <td>-0.751334</td>
+      <td>12155.208666</td>
+      <td>0.479117</td>
+    </tr>
+    <tr>
+      <td>2024-05-02 09:30:00</td>
+      <td>AAPL</td>
+      <td>-0.751334</td>
+      <td>12213.168666</td>
+      <td>0.476833</td>
+    </tr>
+    <tr>
+      <td>2024-05-03 09:30:00</td>
+      <td>AAPL</td>
+      <td>-0.751334</td>
+      <td>12271.128666</td>
+      <td>0.474570</td>
+    </tr>
+    <tr>
+      <td>2024-05-04 09:30:00</td>
+      <td>AAPL</td>
+      <td>-0.751334</td>
+      <td>12329.088666</td>
+      <td>0.472328</td>
+    </tr>
+    <tr>
+      <td>2024-05-05 09:30:00</td>
+      <td>AAPL</td>
+      <td>-0.751334</td>
+      <td>12387.048666</td>
+      <td>0.470108</td>
+    </tr>
+    <tr>
+      <td>2024-05-06 09:30:00</td>
+      <td>AAPL</td>
+      <td>-0.751334</td>
+      <td>12445.008666</td>
+      <td>0.467908</td>
+    </tr>
+    <tr>
+      <td>2024-05-07 09:30:00</td>
+      <td>AAPL</td>
+      <td>-0.751334</td>
+      <td>12502.968666</td>
+      <td>0.465729</td>
+    </tr>
+    <tr>
+      <td>2024-05-08 09:30:00</td>
+      <td>AAPL</td>
+      <td>-0.751334</td>
+      <td>12560.928666</td>
+      <td>0.463570</td>
+    </tr>
+    <tr>
+      <td>2024-05-09 09:30:00</td>
+      <td>AAPL</td>
+      <td>-0.751334</td>
+      <td>12618.888666</td>
+      <td>0.461431</td>
+    </tr>
+    <tr>
+      <td>2024-05-10 09:30:00</td>
+      <td>AAPL</td>
+      <td>-0.751334</td>
+      <td>12676.848666</td>
+      <td>0.459311</td>
+    </tr>
+    <tr>
+      <td>2024-05-11 09:30:00</td>
+      <td>AAPL</td>
+      <td>-0.751334</td>
+      <td>12734.808666</td>
+      <td>0.457211</td>
+    </tr>
+    <tr>
+      <td>2024-05-12 09:30:00</td>
+      <td>AAPL</td>
+      <td>-0.751334</td>
+      <td>12406.368666</td>
+      <td>-2.579073</td>
+    </tr>
+    <tr>
+      <td>2024-05-13 09:30:00</td>
+      <td>AAPL</td>
+      <td>-0.751334</td>
+      <td>12464.328666</td>
+      <td>0.467179</td>
+    </tr>
+    <tr>
+      <td>2024-05-14 09:30:00</td>
+      <td>AAPL</td>
+      <td>-0.751334</td>
+      <td>12522.288666</td>
+      <td>0.465007</td>
+    </tr>
+    <tr>
+      <td>2024-05-15 09:30:00</td>
+      <td>AAPL</td>
+      <td>-0.751334</td>
+      <td>12580.248666</td>
+      <td>0.462855</td>
+    </tr>
+    <tr>
+      <td>2024-05-16 09:30:00</td>
+      <td>AAPL</td>
+      <td>-0.751334</td>
+      <td>12638.208666</td>
+      <td>0.460722</td>
+    </tr>
+    <tr>
+      <td>2024-05-17 09:30:00</td>
+      <td>AAPL</td>
+      <td>-0.751334</td>
+      <td>12696.168666</td>
+      <td>0.458609</td>
+    </tr>
+    <tr>
+      <td>2024-05-18 09:30:00</td>
+      <td>AAPL</td>
+      <td>-0.751334</td>
+      <td>12754.128666</td>
+      <td>0.456516</td>
+    </tr>
+    <tr>
+      <td>2024-05-19 09:30:00</td>
+      <td>AAPL</td>
+      <td>-0.751334</td>
+      <td>12812.088666</td>
+      <td>0.454441</td>
+    </tr>
+  </tbody>
+</table>
+
+  <h2>Drawdown</h2>
+  <table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th>timestamp</th>
+      <th>equity</th>
+      <th>drawdown_pct</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>2024-04-30 09:30:00</td>
+      <td>12097.248666</td>
+      <td>-2.643234</td>
+    </tr>
+    <tr>
+      <td>2024-05-01 09:30:00</td>
+      <td>12155.208666</td>
+      <td>-2.176781</td>
+    </tr>
+    <tr>
+      <td>2024-05-02 09:30:00</td>
+      <td>12213.168666</td>
+      <td>-1.710328</td>
+    </tr>
+    <tr>
+      <td>2024-05-03 09:30:00</td>
+      <td>12271.128666</td>
+      <td>-1.243875</td>
+    </tr>
+    <tr>
+      <td>2024-05-04 09:30:00</td>
+      <td>12329.088666</td>
+      <td>-0.777422</td>
+    </tr>
+    <tr>
+      <td>2024-05-05 09:30:00</td>
+      <td>12387.048666</td>
+      <td>-0.310969</td>
+    </tr>
+    <tr>
+      <td>2024-05-06 09:30:00</td>
+      <td>12445.008666</td>
+      <td>0.000000</td>
+    </tr>
+    <tr>
+      <td>2024-05-07 09:30:00</td>
+      <td>12502.968666</td>
+      <td>0.000000</td>
+    </tr>
+    <tr>
+      <td>2024-05-08 09:30:00</td>
+      <td>12560.928666</td>
+      <td>0.000000</td>
+    </tr>
+    <tr>
+      <td>2024-05-09 09:30:00</td>
+      <td>12618.888666</td>
+      <td>0.000000</td>
+    </tr>
+    <tr>
+      <td>2024-05-10 09:30:00</td>
+      <td>12676.848666</td>
+      <td>0.000000</td>
+    </tr>
+    <tr>
+      <td>2024-05-11 09:30:00</td>
+      <td>12734.808666</td>
+      <td>0.000000</td>
+    </tr>
+    <tr>
+      <td>2024-05-12 09:30:00</td>
+      <td>12406.368666</td>
+      <td>-2.579073</td>
+    </tr>
+    <tr>
+      <td>2024-05-13 09:30:00</td>
+      <td>12464.328666</td>
+      <td>-2.123942</td>
+    </tr>
+    <tr>
+      <td>2024-05-14 09:30:00</td>
+      <td>12522.288666</td>
+      <td>-1.668812</td>
+    </tr>
+    <tr>
+      <td>2024-05-15 09:30:00</td>
+      <td>12580.248666</td>
+      <td>-1.213681</td>
+    </tr>
+    <tr>
+      <td>2024-05-16 09:30:00</td>
+      <td>12638.208666</td>
+      <td>-0.758551</td>
+    </tr>
+    <tr>
+      <td>2024-05-17 09:30:00</td>
+      <td>12696.168666</td>
+      <td>-0.303420</td>
+    </tr>
+    <tr>
+      <td>2024-05-18 09:30:00</td>
+      <td>12754.128666</td>
+      <td>0.000000</td>
+    </tr>
+    <tr>
+      <td>2024-05-19 09:30:00</td>
+      <td>12812.088666</td>
+      <td>0.000000</td>
+    </tr>
+  </tbody>
+</table>
+
+  <h2>Geschlossene Trades</h2>
+  <table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th>symbol</th>
+      <th>entry_time</th>
+      <th>exit_time</th>
+      <th>quantity</th>
+      <th>entry_price</th>
+      <th>exit_price</th>
+      <th>pnl</th>
+      <th>holding_days</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>AAPL</td>
+      <td>2024-01-20 09:30:00</td>
+      <td>2024-03-13 09:30:00</td>
+      <td>93</td>
+      <td>105.691134</td>
+      <td>114.037188</td>
+      <td>774.19366</td>
+      <td>53.0</td>
+    </tr>
+  </tbody>
+</table>
+</body>
+</html>

@@ -1,0 +1,344 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <title>TradingIA Research Report - strategy_lab_breakout_bull</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 32px; color: #1f2933; }
+    h1, h2 { color: #102a43; }
+    table { border-collapse: collapse; width: 100%; margin-bottom: 28px; }
+    th, td { border: 1px solid #d9e2ec; padding: 8px; text-align: right; }
+    th { background: #f0f4f8; }
+    td:first-child, th:first-child { text-align: left; }
+  </style>
+</head>
+<body>
+  <h1>TradingIA Research Report</h1>
+  <p><strong>Report:</strong> strategy_lab_breakout_bull</p>
+  <p><strong>Erstellt:</strong> 2026-07-02T13:11:23</p>
+
+  <h2>Kennzahlen</h2>
+  <table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th>Generated At</th>
+      <th>Report Name</th>
+      <th>Ending Equity</th>
+      <th>Return %</th>
+      <th>Max Drawdown %</th>
+      <th>Winrate %</th>
+      <th>Profit Factor</th>
+      <th>Sharpe Ratio</th>
+      <th>Sortino Ratio</th>
+      <th>Durchschnittlicher Gewinn</th>
+      <th>Durchschnittlicher Verlust</th>
+      <th>Anzahl Trades</th>
+      <th>Durchschnittliche Haltedauer</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>2026-07-02T13:11:23</td>
+      <td>strategy_lab_breakout_bull</td>
+      <td>11139.4002</td>
+      <td>11.394</td>
+      <td>-2.886</td>
+      <td>0.0</td>
+      <td>0.0</td>
+      <td>2.131</td>
+      <td>1.1374</td>
+      <td>0.0</td>
+      <td>0.0</td>
+      <td>0</td>
+      <td>0.0</td>
+    </tr>
+  </tbody>
+</table>
+
+  <h2>Equity Curve</h2>
+  <table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th>timestamp</th>
+      <th>symbol</th>
+      <th>cash</th>
+      <th>equity</th>
+      <th>return_pct</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>2024-04-30 09:30:00</td>
+      <td>AAPL</td>
+      <td>-2.19984</td>
+      <td>10517.80016</td>
+      <td>-2.643612</td>
+    </tr>
+    <tr>
+      <td>2024-05-01 09:30:00</td>
+      <td>AAPL</td>
+      <td>-2.19984</td>
+      <td>10568.20016</td>
+      <td>0.479188</td>
+    </tr>
+    <tr>
+      <td>2024-05-02 09:30:00</td>
+      <td>AAPL</td>
+      <td>-2.19984</td>
+      <td>10618.60016</td>
+      <td>0.476902</td>
+    </tr>
+    <tr>
+      <td>2024-05-03 09:30:00</td>
+      <td>AAPL</td>
+      <td>-2.19984</td>
+      <td>10669.00016</td>
+      <td>0.474639</td>
+    </tr>
+    <tr>
+      <td>2024-05-04 09:30:00</td>
+      <td>AAPL</td>
+      <td>-2.19984</td>
+      <td>10719.40016</td>
+      <td>0.472397</td>
+    </tr>
+    <tr>
+      <td>2024-05-05 09:30:00</td>
+      <td>AAPL</td>
+      <td>-2.19984</td>
+      <td>10769.80016</td>
+      <td>0.470176</td>
+    </tr>
+    <tr>
+      <td>2024-05-06 09:30:00</td>
+      <td>AAPL</td>
+      <td>-2.19984</td>
+      <td>10820.20016</td>
+      <td>0.467975</td>
+    </tr>
+    <tr>
+      <td>2024-05-07 09:30:00</td>
+      <td>AAPL</td>
+      <td>-2.19984</td>
+      <td>10870.60016</td>
+      <td>0.465795</td>
+    </tr>
+    <tr>
+      <td>2024-05-08 09:30:00</td>
+      <td>AAPL</td>
+      <td>-2.19984</td>
+      <td>10921.00016</td>
+      <td>0.463636</td>
+    </tr>
+    <tr>
+      <td>2024-05-09 09:30:00</td>
+      <td>AAPL</td>
+      <td>-2.19984</td>
+      <td>10971.40016</td>
+      <td>0.461496</td>
+    </tr>
+    <tr>
+      <td>2024-05-10 09:30:00</td>
+      <td>AAPL</td>
+      <td>-2.19984</td>
+      <td>11021.80016</td>
+      <td>0.459376</td>
+    </tr>
+    <tr>
+      <td>2024-05-11 09:30:00</td>
+      <td>AAPL</td>
+      <td>-2.19984</td>
+      <td>11072.20016</td>
+      <td>0.457276</td>
+    </tr>
+    <tr>
+      <td>2024-05-12 09:30:00</td>
+      <td>AAPL</td>
+      <td>-2.19984</td>
+      <td>10786.60016</td>
+      <td>-2.579433</td>
+    </tr>
+    <tr>
+      <td>2024-05-13 09:30:00</td>
+      <td>AAPL</td>
+      <td>-2.19984</td>
+      <td>10837.00016</td>
+      <td>0.467246</td>
+    </tr>
+    <tr>
+      <td>2024-05-14 09:30:00</td>
+      <td>AAPL</td>
+      <td>-2.19984</td>
+      <td>10887.40016</td>
+      <td>0.465073</td>
+    </tr>
+    <tr>
+      <td>2024-05-15 09:30:00</td>
+      <td>AAPL</td>
+      <td>-2.19984</td>
+      <td>10937.80016</td>
+      <td>0.462920</td>
+    </tr>
+    <tr>
+      <td>2024-05-16 09:30:00</td>
+      <td>AAPL</td>
+      <td>-2.19984</td>
+      <td>10988.20016</td>
+      <td>0.460787</td>
+    </tr>
+    <tr>
+      <td>2024-05-17 09:30:00</td>
+      <td>AAPL</td>
+      <td>-2.19984</td>
+      <td>11038.60016</td>
+      <td>0.458674</td>
+    </tr>
+    <tr>
+      <td>2024-05-18 09:30:00</td>
+      <td>AAPL</td>
+      <td>-2.19984</td>
+      <td>11089.00016</td>
+      <td>0.456580</td>
+    </tr>
+    <tr>
+      <td>2024-05-19 09:30:00</td>
+      <td>AAPL</td>
+      <td>-2.19984</td>
+      <td>11139.40016</td>
+      <td>0.454504</td>
+    </tr>
+  </tbody>
+</table>
+
+  <h2>Drawdown</h2>
+  <table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th>timestamp</th>
+      <th>equity</th>
+      <th>drawdown_pct</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>2024-04-30 09:30:00</td>
+      <td>10517.80016</td>
+      <td>-2.643612</td>
+    </tr>
+    <tr>
+      <td>2024-05-01 09:30:00</td>
+      <td>10568.20016</td>
+      <td>-2.177092</td>
+    </tr>
+    <tr>
+      <td>2024-05-02 09:30:00</td>
+      <td>10618.60016</td>
+      <td>-1.710573</td>
+    </tr>
+    <tr>
+      <td>2024-05-03 09:30:00</td>
+      <td>10669.00016</td>
+      <td>-1.244053</td>
+    </tr>
+    <tr>
+      <td>2024-05-04 09:30:00</td>
+      <td>10719.40016</td>
+      <td>-0.777533</td>
+    </tr>
+    <tr>
+      <td>2024-05-05 09:30:00</td>
+      <td>10769.80016</td>
+      <td>-0.311013</td>
+    </tr>
+    <tr>
+      <td>2024-05-06 09:30:00</td>
+      <td>10820.20016</td>
+      <td>0.000000</td>
+    </tr>
+    <tr>
+      <td>2024-05-07 09:30:00</td>
+      <td>10870.60016</td>
+      <td>0.000000</td>
+    </tr>
+    <tr>
+      <td>2024-05-08 09:30:00</td>
+      <td>10921.00016</td>
+      <td>0.000000</td>
+    </tr>
+    <tr>
+      <td>2024-05-09 09:30:00</td>
+      <td>10971.40016</td>
+      <td>0.000000</td>
+    </tr>
+    <tr>
+      <td>2024-05-10 09:30:00</td>
+      <td>11021.80016</td>
+      <td>0.000000</td>
+    </tr>
+    <tr>
+      <td>2024-05-11 09:30:00</td>
+      <td>11072.20016</td>
+      <td>0.000000</td>
+    </tr>
+    <tr>
+      <td>2024-05-12 09:30:00</td>
+      <td>10786.60016</td>
+      <td>-2.579433</td>
+    </tr>
+    <tr>
+      <td>2024-05-13 09:30:00</td>
+      <td>10837.00016</td>
+      <td>-2.124239</td>
+    </tr>
+    <tr>
+      <td>2024-05-14 09:30:00</td>
+      <td>10887.40016</td>
+      <td>-1.669045</td>
+    </tr>
+    <tr>
+      <td>2024-05-15 09:30:00</td>
+      <td>10937.80016</td>
+      <td>-1.213851</td>
+    </tr>
+    <tr>
+      <td>2024-05-16 09:30:00</td>
+      <td>10988.20016</td>
+      <td>-0.758657</td>
+    </tr>
+    <tr>
+      <td>2024-05-17 09:30:00</td>
+      <td>11038.60016</td>
+      <td>-0.303463</td>
+    </tr>
+    <tr>
+      <td>2024-05-18 09:30:00</td>
+      <td>11089.00016</td>
+      <td>0.000000</td>
+    </tr>
+    <tr>
+      <td>2024-05-19 09:30:00</td>
+      <td>11139.40016</td>
+      <td>0.000000</td>
+    </tr>
+  </tbody>
+</table>
+
+  <h2>Geschlossene Trades</h2>
+  <table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th>symbol</th>
+      <th>entry_time</th>
+      <th>exit_time</th>
+      <th>quantity</th>
+      <th>entry_price</th>
+      <th>exit_price</th>
+      <th>pnl</th>
+      <th>holding_days</th>
+    </tr>
+  </thead>
+  <tbody>
+  </tbody>
+</table>
+</body>
+</html>
