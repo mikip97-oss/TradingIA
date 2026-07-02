@@ -55,4 +55,7 @@ Dieser Schritt integriert die Market Regime Engine optional in das Strategy Lab.
 ## Sprint 5: Research Dashboard
 
 Dieser Schritt fuehrt eine eigenstaendige Research-Auswertung fuer Backtest-Ergebnisse ein. Das Dashboard erzeugt Equity Curve, Drawdown, zentrale Performance-Kennzahlen, CSV-Exporte und einen HTML-Report mit Datum und Uhrzeit. Bestehende GUI-, Scanner- und Backtesting-Module bleiben unveraendert.
+## Sprint 6: Parameter Optimizer
+
+Dieser Schritt fuehrt einen modularen Grid-Search-Optimizer fuer Strategieparameter ein. Mehrere Parameter-Kombinationen einer Strategie koennen ueber dieselbe Event-Driven-Backtesting-Engine getestet und als Leaderboard verglichen werden. Bestehende GUI-, Scanner- und Backtesting-Module bleiben unveraendert.
 
