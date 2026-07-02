@@ -64,4 +64,7 @@ Dieser Schritt fuehrt mit `research_runner.py` einen ausfuehrbaren Einstiegspunk
 ## MVP-Speed-Modus: Großer Aktien-Scanner
 
 Dieser Schritt erweitert die Universe-Logik fuer einen groesseren Scanner. S&P 500 und Nasdaq 100 koennen geladen, normalisiert und dedupliziert werden. Die Fallback-Liste bleibt erhalten, und `TOP_ANZAHL` kann 50 Kandidaten anzeigen. GUI und `scanner.py` bleiben in diesem Schritt unveraendert.
+## Sprint 8: High-Speed Scanner
+
+Dieser Sprint fuehrt paralleles Scannen mit `ThreadPoolExecutor` ein. Die bestehende Scanner-Logik wird in `scan_ticker(ticker)` gekapselt, Tickerfehler werden isoliert verarbeitet und die Parallelitaet kann mit `SCANNER_MAX_WORKERS` konfiguriert werden. Ziel ist schneller MVP-Nutzen ohne GUI oder Backtesting-Module umzubauen.
 
