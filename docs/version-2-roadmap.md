@@ -49,4 +49,10 @@ Enthalten:
 ## Sprint 3: Market Regime Engine
 
 Dieser Schritt fuehrt eine eigenstaendige Market-Regime-Komponente ein. Sie erkennt Bull-, Bear- und Sideways-Maerkte anhand von EMA-Struktur, ADX, ATR und Volatilitaet. Die Komponente bleibt unabhaengig von Strategien, GUI, Scanner und Backtesting Engine, damit das Strategy Lab spaeter Regime als Kontext oder Filter nutzen kann.
+## Sprint 4: Regime-Aware Strategy Selection
+
+Dieser Schritt integriert die Market Regime Engine optional in das Strategy Lab. Das Lab kann je nach erkanntem Regime passende Strategien auswaehlen und das erkannte Regime im Leaderboard anzeigen. Ohne Regime Engine bleibt das bisherige Verhalten unveraendert.
+## Sprint 5: Research Dashboard
+
+Dieser Schritt fuehrt eine eigenstaendige Research-Auswertung fuer Backtest-Ergebnisse ein. Das Dashboard erzeugt Equity Curve, Drawdown, zentrale Performance-Kennzahlen, CSV-Exporte und einen HTML-Report mit Datum und Uhrzeit. Bestehende GUI-, Scanner- und Backtesting-Module bleiben unveraendert.
 
