@@ -82,4 +82,7 @@ Dieser Bugfix ergaenzt eine lokale Backup-Liste fuer das Aktienuniversum. Wenn O
 ## Sprint 12: Data Provider Engine
 
 Dieser Sprint fuehrt eine modulare Datenanbieter-Schicht unter `tradingia/data` ein. `YahooFinanceProvider` ist die erste Implementierung und kapselt `yfinance` hinter `get_history(ticker, period, interval)`. Fehler werden zentral abgefangen und als leere DataFrames zurueckgegeben. Bestehende Scanner werden in diesem Sprint noch nicht umgestellt.
+## Sprint 13: News & Market Intelligence Engine
+
+Dieser Sprint fuehrt eine modulare News- und Market-Intelligence-Schicht ein. Es gibt eine Provider-Schnittstelle, einen MockNewsProvider fuer Tests und eine regelbasierte NewsScore-Engine fuer positive/negative Begriffe, Earnings, Analystenmeldungen, Partnerships, FDA/Approval und rechtliche Risiken. Live-News-APIs werden noch nicht integriert.
 
