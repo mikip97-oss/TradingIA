@@ -341,3 +341,11 @@ def _adx(high: pd.Series, low: pd.Series, close: pd.Series, window: int = 14) ->
 def _intraday_volatility(close: pd.Series, window: int = 20) -> float:
     value = close.pct_change().rolling(window).std().iloc[-1] * 100
     return float(value) if pd.notna(value) else 0.0
+if __name__ == "__main__":
+    df = scan_daytrading_market()
+
+    if df.empty:
+        print("Keine Daytrading-Kandidaten gefunden.")
+    else:
+        print("\nTop Daytrading-Kandidaten:\n")
+        print(df.to_string(index=False))

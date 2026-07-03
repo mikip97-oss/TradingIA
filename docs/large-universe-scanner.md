@@ -9,13 +9,21 @@ Dieser MVP-Speed-Schritt erweitert die Universe-Logik fuer TradingIA. Ziel ist, 
 - Yahoo-kompatible Ticker-Normalisierung, zum Beispiel `BRK.B` zu `BRK-B`
 - Duplikate entfernen
 - bestehende Fallback-Liste behalten
+- lokale Backup-Liste nutzen, wenn Online-Quellen blockiert sind
 - robust weiterlaufen, wenn eine Quelle nicht erreichbar ist
+
+## Lokaler Backup-Modus
+
+Wenn Wikipedia oder andere Online-Quellen mit `HTTP 403 Forbidden` oder einem anderen Fehler antworten, nutzt `lade_grosses_universum()` automatisch eine lokale Backup-Liste mit mindestens 100 bekannten US-Aktien. Dadurch faellt TradingIA nicht mehr auf nur 20 Fallback-Aktien zurueck.
+
+Die Deduplizierung bleibt aktiv, sodass Online-Ticker, Backup-Ticker und Fallback-Ticker sauber zusammengefuehrt werden. Fuer gezielte Tests kann der Backup-Modus mit `include_backup=False` deaktiviert werden.
 
 ## Wichtige Funktionen
 
 - `lade_sp500_ticker()`
 - `lade_nasdaq100_ticker()`
 - `lade_fallback_ticker()`
+- `lade_backup_us_ticker()`
 - `lade_grosses_universum()`
 - `lade_standard_universum()`
 

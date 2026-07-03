@@ -70,4 +70,16 @@ Dieser Sprint fuehrt paralleles Scannen mit `ThreadPoolExecutor` ein. Die besteh
 ## Sprint 9: Daytrading Scanner
 
 Dieser Sprint fuehrt einen separaten Daytrading-Scanner ein. Er bewertet kurzfristige Tages-Setups anhand von Intraday-Bewegung, Volumen, Gap, RSI, ADX, ROC, Naehe zum Tageshoch und relativer Bewegung. Der Scanner erzeugt einen DayTradeScore von 0 bis 100 und bleibt getrennt vom bestehenden Swing-/Hauptscanner.
+## Sprint 10: Daytrading Scanner in GUI integrieren
+
+Dieser Sprint fuegt der PySide6-App eine Scanner-Auswahl hinzu. Die bestehende GUI kann zwischen Swing Scanner und Daytrading Scanner wechseln, ohne die Tabellenanzeige oder Chartfunktion grundlegend umzubauen.
+## Sprint 11: Catalyst Scanner
+
+Dieser Sprint fuehrt einen separaten Catalyst Scanner ein. Er bewertet technische Daytrading-Katalysatoren wie Tagesbewegung, Volumen, Gap, ROC, Naehe zum Tageshoch und ungewoehnliche Volatilitaet. Echte News-APIs werden bewusst noch nicht integriert.
+## Bugfix: Universe HTTP 403 Backup
+
+Dieser Bugfix ergaenzt eine lokale Backup-Liste fuer das Aktienuniversum. Wenn Online-Quellen wie Wikipedia mit HTTP 403 blockieren, nutzt TradingIA weiterhin ein groesseres statisches US-Aktienuniversum statt nur die kleine Fallback-Liste.
+## Sprint 12: Data Provider Engine
+
+Dieser Sprint fuehrt eine modulare Datenanbieter-Schicht unter `tradingia/data` ein. `YahooFinanceProvider` ist die erste Implementierung und kapselt `yfinance` hinter `get_history(ticker, period, interval)`. Fehler werden zentral abgefangen und als leere DataFrames zurueckgegeben. Bestehende Scanner werden in diesem Sprint noch nicht umgestellt.
 
