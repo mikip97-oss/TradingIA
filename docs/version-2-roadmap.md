@@ -88,3 +88,6 @@ Dieser Sprint fuehrt eine modulare News- und Market-Intelligence-Schicht ein. Es
 ## Sprint 14: Master Decision Engine
 
 Dieser Sprint fuehrt eine zentrale Decision Engine unter `tradingia/decision` ein. Sie kombiniert DayTradeScore, CatalystScore, NewsScore, TradeScore, KI % und Market Regime zu einem konfigurierbaren `FinalScore` von 0 bis 100. Die Engine erzeugt ein sortierbares Leaderboard mit Empfehlung, wichtigsten Gruenden und Teil-Scores. GUI, `scanner.py`, `daytrading_scanner.py` und `catalyst_scanner.py` bleiben unveraendert.
+## Sprint 15: Finnhub News Integration
+
+Dieser Sprint ergaenzt mit `FinnhubNewsProvider` den ersten echten News-Anbieter. Der API-Key wird ueber `FINNHUB_API_KEY` aus der Umgebung oder einer lokalen `.env`-Datei gelesen. Ohne Key oder bei API-Fehlern faellt der Provider sauber auf eine leere Nachrichtenliste zurueck, sodass GUI, Scanner und Research stabil bleiben.

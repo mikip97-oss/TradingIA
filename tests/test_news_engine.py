@@ -1,7 +1,23 @@
+import json
 from datetime import datetime
+from urllib.parse import parse_qs, urlparse
 
-from tradingia.news import MockNewsProvider, NewsIntelligenceEngine, NewsItem, NewsSentiment
+from tradingia.news import FinnhubNewsProvider, MockNewsProvider, NewsIntelligenceEngine, NewsItem, NewsSentiment
 from tradingia.news.engine import score_news_items
+
+
+class _FakeFinnhubResponse:
+    def __init__(self, payload):
+        self.payload = payload
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc, traceback):
+        return False
+
+    def read(self):
+        return json.dumps(self.payload).encode("utf-8")
 
 
 def test_mock_news_provider_returns_news_items():
@@ -86,3 +102,73 @@ def test_empty_news_returns_neutral_zero_score():
     assert result.sentiment == NewsSentiment.NEUTRAL
     assert result.news_count == 0
     assert result.reasons == []
+
+
+def test_finnhub_provider_returns_empty_list_without_api_key(monkeypatch, tmp_path):
+    monkeypatch.delenv("FINNHUB_API_KEY", raising=False)
+    provider = FinnhubNewsProvider(env_file=tmp_path / ".env")
+
+    assert provider.get_news("AAPL") == []
+    assert provider.last_error == "FINNHUB_API_KEY fehlt"
+
+
+def test_finnhub_provider_reads_api_key_from_env_file(monkeypatch, tmp_path):
+    monkeypatch.delenv("FINNHUB_API_KEY", raising=False)
+    env_file = tmp_path / ".env"
+    env_file.write_text("FINNHUB_API_KEY=from_file\n", encoding="utf-8")
+
+    provider = FinnhubNewsProvider(env_file=env_file)
+
+    assert provider.api_key == "from_file"
+
+
+def test_finnhub_provider_maps_response_without_real_api_call(monkeypatch):
+    monkeypatch.delenv("FINNHUB_API_KEY", raising=False)
+    captured_urls = []
+
+    def fake_urlopen(url, timeout):
+        captured_urls.append(url)
+        return _FakeFinnhubResponse(
+            [
+                {
+                    "headline": "Apple beats earnings and announces partnership",
+                    "summary": "Analyst upgrade follows strong growth",
+                    "source": "Finnhub Test",
+                    "datetime": 1704067200,
+                }
+            ]
+        )
+
+    provider = FinnhubNewsProvider(api_key="test_key", urlopen_func=fake_urlopen)
+    news = provider.get_news("AAPL", limit=1)
+
+    assert len(news) == 1
+    assert news[0].ticker == "AAPL"
+    assert news[0].headline == "Apple beats earnings and announces partnership"
+    assert news[0].source == "Finnhub Test"
+    assert news[0].published_at == datetime(2024, 1, 1)
+    query = parse_qs(urlparse(captured_urls[0]).query)
+    assert query["symbol"] == ["AAPL"]
+    assert query["token"] == ["test_key"]
+
+
+def test_news_engine_scores_finnhub_provider_items_without_real_api_call():
+    def fake_urlopen(url, timeout):
+        return _FakeFinnhubResponse(
+            [
+                {
+                    "headline": "Nvidia beats earnings expectations",
+                    "summary": "Company raises guidance after major deal",
+                    "source": "Finnhub Test",
+                    "datetime": 1704067200,
+                }
+            ]
+        )
+
+    engine = NewsIntelligenceEngine(FinnhubNewsProvider(api_key="test_key", urlopen_func=fake_urlopen))
+
+    result = engine.score_ticker("NVDA")
+
+    assert result.news_score > 70
+    assert result.news_count == 1
+    assert result.sentiment == NewsSentiment.POSITIVE

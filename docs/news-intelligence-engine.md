@@ -15,7 +15,7 @@ def get_news(self, ticker: str, limit: int = 20) -> list[NewsItem]:
     ...
 ```
 
-Aktuell gibt es nur `MockNewsProvider` fuer Tests und lokale Experimente. Spaeter koennen Anbieter wie Finnhub, Polygon, Benzinga, Alpaca oder Broker-News ergaenzt werden.
+Aktuell gibt es weiterhin `MockNewsProvider` fuer Tests und lokale Experimente. Zusaetzlich gibt es `FinnhubNewsProvider`, der echte Unternehmensnachrichten pro Ticker laden kann, wenn ein API-Key vorhanden ist. Weitere Anbieter wie Polygon, Benzinga, Alpaca oder Broker-News koennen spaeter ueber dieselbe Schnittstelle ergaenzt werden.
 
 ## Bewertete Faktoren
 
@@ -40,3 +40,24 @@ Die Engine liefert pro Aktie:
 ## Hinweis
 
 Der NewsScore ist eine grobe regelbasierte Einschaetzung. Er ersetzt keine echte Nachrichtenanalyse und behauptet keine sichere Kursvorhersage. Live-News-APIs werden bewusst erst in spaeteren Schritten integriert.
+
+
+## Finnhub Integration
+
+Der `FinnhubNewsProvider` liest den API-Key aus der Umgebungsvariable `FINNHUB_API_KEY` oder aus einer lokalen `.env`-Datei im Projektverzeichnis. Es duerfen keine echten API-Keys in Git gespeichert werden.
+
+Beispiel fuer eine lokale `.env`-Datei:
+
+```env
+FINNHUB_API_KEY=dein_lokaler_key
+```
+
+Wenn kein API-Key vorhanden ist oder Finnhub einen Fehler liefert, gibt der Provider eine leere Nachrichtenliste zurueck. Dadurch bleiben Scanner, GUI und Research-Laeufe stabil. Der bestehende `NewsIntelligenceEngine` kann die Finnhub-Nachrichten direkt bewerten und daraus den `NewsScore` berechnen. Dieser `NewsScore` kann anschliessend als Teil-Score in die Master Decision Engine eingehen.
+
+```python
+from tradingia.news import FinnhubNewsProvider, NewsIntelligenceEngine
+
+provider = FinnhubNewsProvider()
+engine = NewsIntelligenceEngine(provider)
+result = engine.score_ticker("AAPL")
+```
