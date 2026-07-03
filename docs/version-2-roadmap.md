@@ -91,3 +91,6 @@ Dieser Sprint fuehrt eine zentrale Decision Engine unter `tradingia/decision` ei
 ## Sprint 15: Finnhub News Integration
 
 Dieser Sprint ergaenzt mit `FinnhubNewsProvider` den ersten echten News-Anbieter. Der API-Key wird ueber `FINNHUB_API_KEY` aus der Umgebung oder einer lokalen `.env`-Datei gelesen. Ohne Key oder bei API-Fehlern faellt der Provider sauber auf eine leere Nachrichtenliste zurueck, sodass GUI, Scanner und Research stabil bleiben.
+## Sprint 16: Intelligence Pipeline
+
+Dieser Sprint fuehrt eine zentrale Intelligence Pipeline unter `tradingia/intelligence` ein. Sie sammelt DayTradeScore, CatalystScore und NewsScore pro Aktie, filtert relevante News nach Ticker oder Firmenname und erzeugt mit der Master Decision Engine eine finale, sortierte Rangliste. GUI und bestehende Scanner bleiben unveraendert.
