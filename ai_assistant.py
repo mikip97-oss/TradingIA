@@ -1,73 +1,85 @@
-def erstelle_ki_analyse(aktie):
-    name = aktie.get("Aktie", "")
-    score = aktie.get("Score", 0)
-    empfehlung = aktie.get("Empfehlung", "")
-    rsi = aktie.get("RSI", 0)
-    volumen = aktie.get("Volumen-Faktor", 0)
-    heute = aktie.get("Heute %", 0)
-    chance_risiko = aktie.get("Chance/Risiko", 0)
-    einstieg = aktie.get("Einstieg", 0)
-    stop = aktie.get("Stop-Loss", 0)
-    ziel = aktie.get("Ziel", 0)
-    muster = aktie.get("Muster", "Keine")
+from __future__ import annotations
 
-    analyse = []
 
-    analyse.append(f"KI-Analyse für {name}")
-    analyse.append("=" * 40)
-    analyse.append(f"Score: {score}/100")
-    analyse.append(f"Empfehlung: {empfehlung}")
-    analyse.append("")
+def erstelle_ki_analyse(aktie: dict) -> str:
+    ticker = _value(aktie, "Aktie", "")
+    trade_score = _number(_value(aktie, "TradeScore", _value(aktie, "Score", 0)))
+    ki_percent = _number(_value(aktie, "KI %", 0))
+    recommendation = _value(aktie, "Empfehlung", "")
+    reasons = _value(aktie, "Gründe", "")
+    entry = _number(_value(aktie, "Einstieg", 0))
+    stop_loss = _number(_value(aktie, "Stop-Loss", 0))
+    target = _number(_value(aktie, "Ziel", 0))
+    rsi = _number(_value(aktie, "RSI", 0))
+    volume_factor = _number(_value(aktie, "Volumen-Faktor", 0))
+    adx = _number(_value(aktie, "ADX", 0))
+    roc = _number(_value(aktie, "ROC", 0))
+    today_pct = _number(_value(aktie, "Heute %", 0))
+    chance_risk = _number(_value(aktie, "Chance/Risiko", 0))
+    pattern = _value(aktie, "Muster", "Keine")
 
-    if score >= 90:
-        analyse.append("Die Aktie zeigt aktuell ein sehr starkes technisches Setup.")
-    elif score >= 75:
-        analyse.append("Die Aktie ist technisch interessant und sollte beobachtet werden.")
-    elif score >= 60:
-        analyse.append("Die Aktie zeigt erste positive Signale, ist aber noch kein klares Top-Setup.")
-    else:
-        analyse.append("Die Aktie ist aktuell kein bevorzugter Trade.")
+    lines = []
+    lines.append(f"KI-Analyse für {ticker}")
+    lines.append("=" * 40)
+    lines.append(f"TradeScore: {_format_number(trade_score)}/100")
+    lines.append(f"KI-Wahrscheinlichkeit: {_format_number(ki_percent)}%")
+    lines.append(f"Empfehlung: {recommendation}")
 
-    analyse.append("")
+    if reasons:
+        lines.append(f"Gründe: {reasons}")
 
-    analyse.append("Wichtige Punkte:")
+    lines.append("")
+    lines.append(_summary(trade_score, recommendation))
+    lines.append("")
 
-    if heute > 3:
-        analyse.append(f"+ Starkes Momentum heute: {heute}%")
-    elif heute > 0:
-        analyse.append(f"+ Positive Tagesbewegung: {heute}%")
-    else:
-        analyse.append(f"- Schwache Tagesbewegung: {heute}%")
+    lines.append("Technische Werte:")
+    lines.append(f"Heute: {_format_number(today_pct)}%")
+    lines.append(f"RSI: {_format_number(rsi)}")
+    lines.append(f"Volumen-Faktor: {_format_number(volume_factor)}x")
+    lines.append(f"ADX: {_format_number(adx)}")
+    lines.append(f"ROC: {_format_number(roc)}%")
+    lines.append(f"Chance/Risiko: {_format_number(chance_risk)}")
 
-    if volumen >= 1.5:
-        analyse.append(f"+ Deutlich erhöhtes Volumen: {volumen}x")
-    elif volumen >= 1:
-        analyse.append(f"+ Volumen über Durchschnitt: {volumen}x")
-    else:
-        analyse.append(f"- Volumen noch unterdurchschnittlich: {volumen}x")
+    if pattern and pattern != "Keine":
+        lines.append(f"Muster: {pattern}")
 
-    if 45 <= rsi <= 70:
-        analyse.append(f"+ RSI im gesunden Momentum-Bereich: {rsi}")
-    elif rsi > 75:
-        analyse.append(f"- RSI möglicherweise überkauft: {rsi}")
-    else:
-        analyse.append(f"- RSI noch nicht ideal: {rsi}")
+    lines.append("")
+    lines.append("Trade-Plan:")
+    lines.append(f"Einstieg: {_format_price(entry)}")
+    lines.append(f"Stop-Loss: {_format_price(stop_loss)}")
+    lines.append(f"Ziel: {_format_price(target)}")
 
-    if muster != "Keine":
-        analyse.append(f"+ Candlestick-Muster erkannt: {muster}")
+    lines.append("")
+    lines.append("Hinweis: Das ist keine Anlageberatung. Die Analyse bewertet nur das technische Setup aus der aktuellen Scanner-Zeile.")
 
-    if chance_risiko >= 2:
-        analyse.append(f"+ Gutes Chance/Risiko-Verhältnis: {chance_risiko}")
-    else:
-        analyse.append(f"- Chance/Risiko-Verhältnis eher schwach: {chance_risiko}")
+    return "\n".join(lines)
 
-    analyse.append("")
-    analyse.append("Trade-Plan:")
-    analyse.append(f"Einstieg: {einstieg}")
-    analyse.append(f"Stop-Loss: {stop}")
-    analyse.append(f"Ziel: {ziel}")
 
-    analyse.append("")
-    analyse.append("Hinweis: Das ist keine Anlageberatung. Der Bot liefert nur eine technische Einschätzung.")
+def _summary(trade_score: float, recommendation: str) -> str:
+    if trade_score >= 80:
+        return f"Das aktuelle Setup ist sehr stark und passt zur Tabellen-Empfehlung: {recommendation}."
+    if trade_score >= 70:
+        return f"Das aktuelle Setup ist ein klarer Trade-Kandidat und passt zur Tabellen-Empfehlung: {recommendation}."
+    if trade_score >= 60:
+        return f"Das aktuelle Setup ist beobachtenswert und passt zur Tabellen-Empfehlung: {recommendation}."
+    return f"Das aktuelle Setup ist schwach oder noch nicht reif. Tabellen-Empfehlung: {recommendation}."
 
-    return "\n".join(analyse)
+
+def _value(row: dict, key: str, default):
+    value = row.get(key, default)
+    return default if value is None else value
+
+
+def _number(value) -> float:
+    try:
+        return float(value)
+    except (TypeError, ValueError):
+        return 0.0
+
+
+def _format_number(value: float) -> str:
+    return f"{value:.1f}".rstrip("0").rstrip(".")
+
+
+def _format_price(value: float) -> str:
+    return f"{value:.2f}"

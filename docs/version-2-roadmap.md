@@ -67,4 +67,7 @@ Dieser Schritt erweitert die Universe-Logik fuer einen groesseren Scanner. S&P 5
 ## Sprint 8: High-Speed Scanner
 
 Dieser Sprint fuehrt paralleles Scannen mit `ThreadPoolExecutor` ein. Die bestehende Scanner-Logik wird in `scan_ticker(ticker)` gekapselt, Tickerfehler werden isoliert verarbeitet und die Parallelitaet kann mit `SCANNER_MAX_WORKERS` konfiguriert werden. Ziel ist schneller MVP-Nutzen ohne GUI oder Backtesting-Module umzubauen.
+## Sprint 9: Daytrading Scanner
+
+Dieser Sprint fuehrt einen separaten Daytrading-Scanner ein. Er bewertet kurzfristige Tages-Setups anhand von Intraday-Bewegung, Volumen, Gap, RSI, ADX, ROC, Naehe zum Tageshoch und relativer Bewegung. Der Scanner erzeugt einen DayTradeScore von 0 bis 100 und bleibt getrennt vom bestehenden Swing-/Hauptscanner.
 
