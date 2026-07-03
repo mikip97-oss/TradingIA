@@ -85,4 +85,6 @@ Dieser Sprint fuehrt eine modulare Datenanbieter-Schicht unter `tradingia/data` 
 ## Sprint 13: News & Market Intelligence Engine
 
 Dieser Sprint fuehrt eine modulare News- und Market-Intelligence-Schicht ein. Es gibt eine Provider-Schnittstelle, einen MockNewsProvider fuer Tests und eine regelbasierte NewsScore-Engine fuer positive/negative Begriffe, Earnings, Analystenmeldungen, Partnerships, FDA/Approval und rechtliche Risiken. Live-News-APIs werden noch nicht integriert.
+## Sprint 14: Master Decision Engine
 
+Dieser Sprint fuehrt eine zentrale Decision Engine unter `tradingia/decision` ein. Sie kombiniert DayTradeScore, CatalystScore, NewsScore, TradeScore, KI % und Market Regime zu einem konfigurierbaren `FinalScore` von 0 bis 100. Die Engine erzeugt ein sortierbares Leaderboard mit Empfehlung, wichtigsten Gruenden und Teil-Scores. GUI, `scanner.py`, `daytrading_scanner.py` und `catalyst_scanner.py` bleiben unveraendert.
