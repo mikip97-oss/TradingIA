@@ -100,3 +100,6 @@ Dieser Sprint erweitert die bestehende PySide6-App um den Modus `Top Chancen heu
 ## Sprint 18: Vortages-Momentum-Korrektur
 
 Dieser Sprint ergaenzt die Intelligence Pipeline um eine klare Trennung zwischen Vortages-Momentum und heutiger Intraday-Staerke. Starke Vortagesbewegungen werden nicht mehr automatisch belohnt. Stattdessen reduzieren Overextension- und Pullback-Regeln den FinalScore, wenn die heutige Kursreaktion schwach ist, die Aktie weit vom Tageshoch entfernt notiert, der RSI ueberdehnt ist oder starke News nicht durch Preisaktion bestaetigt werden.
+## Sprint 19: Prediction Validator
+
+Dieser Sprint fuehrt eine Validierungs-Komponente unter `tradingia/validation` ein. TradingIA kann taegliche Empfehlungen als CSV speichern und spaeter mit realen oder importierten Kursdaten vergleichen. Die Auswertung berechnet Performance, Trefferquote, durchschnittliche Renditen und die beste Score-Schwelle. Es gibt keine Orders und keine Broker-Anbindung.
