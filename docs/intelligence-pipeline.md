@@ -82,3 +82,8 @@ Die Pipeline reduziert den Score, wenn ein Setup ueberdehnt oder nicht bestaetig
 - NewsScore ist hoch, aber die heutige Kursreaktion bleibt schwach
 
 Dadurch sollen Aktien nicht nur deshalb als Top-Kandidaten erscheinen, weil sie gestern stark gestiegen sind. Die finale Rangliste bevorzugt echte heutige Fortsetzung statt nachlaufendes Vortages-Momentum.
+
+
+## Sprint 20: Momentum Confirmation Engine
+
+Der TodayUpScore wird nun ueber die neue `MomentumConfirmationEngine` berechnet. Dadurch zaehlen nur heutige Signale wie Performance, Volumen, Naehe zum Tageshoch, ROC, ADX, RSI und gehaltene Gap-Ups. Vortagesbewegungen werden nicht belohnt, sondern nur als Risiko fuer Gewinnmitnahmen und Overextension verwendet.

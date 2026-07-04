@@ -7,6 +7,7 @@ import pandas as pd
 from catalyst_scanner import scan_catalyst_market
 from daytrading_scanner import scan_daytrading_market
 from tradingia.decision import DecisionInput, MasterDecisionEngine
+from tradingia.momentum import MomentumInput, score_momentum_confirmation
 from tradingia.news import FinnhubNewsProvider, NewsIntelligenceEngine, NewsItem, NewsScoreResult, NewsSentiment
 from tradingia.news.engine import score_news_items
 
@@ -150,37 +151,23 @@ class IntelligencePipeline:
 
 
 def calculate_today_up_score(context: dict[str, float | None], news_score: float) -> tuple[float, list[str]]:
-    score = 0.0
-    reasons: list[str] = []
-    today_pct = context.get("today_pct")
-    volume_factor = context.get("volume_factor")
-    distance_to_high_pct = context.get("distance_to_high_pct")
-    roc = context.get("roc")
-
-    if today_pct is not None and today_pct > 0:
-        score += 20
-        reasons.append("heutige Intraday-Stärke")
-    if today_pct is not None and today_pct >= 1.5:
-        score += 15
-        reasons.append("starke heutige Fortsetzung")
-    if volume_factor is not None and volume_factor >= 1.5:
-        score += 20
-        reasons.append("erhöhtes heutiges Volumen")
-    elif volume_factor is not None and volume_factor >= 1.0:
-        score += 10
-        reasons.append("Volumen bestätigt Setup")
-    if distance_to_high_pct is not None and distance_to_high_pct <= 1.0:
-        score += 20
-        reasons.append("nahe am Tageshoch")
-    if roc is not None and roc > 0:
-        score += 15
-        reasons.append("positiver heutiger ROC")
-    if news_score >= 70 and today_pct is not None and today_pct > 0:
-        score += 10
-        reasons.append("News werden durch heutige Kursreaktion bestätigt")
-
-    return min(score, 100.0), reasons
-
+    momentum = score_momentum_confirmation(
+        MomentumInput(
+            today_pct=context.get("today_pct"),
+            volume_factor=context.get("volume_factor"),
+            distance_to_high_pct=context.get("distance_to_high_pct"),
+            roc=context.get("roc"),
+            adx=context.get("adx"),
+            rsi=context.get("rsi"),
+            gap_pct=context.get("gap_pct"),
+            previous_day_pct=context.get("previous_day_pct"),
+            relative_strength_pct=context.get("relative_strength_pct"),
+        )
+    )
+    reasons = momentum.reasons + momentum.risk_reasons
+    if news_score >= 70 and context.get("today_pct") is not None and context.get("today_pct") > 0:
+        reasons.append("relevante News mit heutiger Kursbestaetigung")
+    return momentum.score, _unique_reasons(reasons)
 
 def calculate_overextension_penalty(context: dict[str, float | None], news_score: float) -> tuple[float, list[str]]:
     penalty = 0.0
@@ -240,6 +227,9 @@ def _market_context(day_row: dict, catalyst_row: dict) -> dict[str, float | None
         "distance_to_high_pct": _first_number(day_row, catalyst_row, ["Abstand Tageshoch %", "Distanz Tageshoch %", "DistanceToHigh %", "Distance To High %"]),
         "rsi": _first_number(day_row, catalyst_row, ["RSI"]),
         "roc": _first_number(day_row, catalyst_row, ["ROC"]),
+        "adx": _first_number(day_row, catalyst_row, ["ADX"]),
+        "gap_pct": _first_number(day_row, catalyst_row, ["Gap %", "Gap", "Gap-Up %", "GapPct"]),
+        "relative_strength_pct": _first_number(day_row, catalyst_row, ["Relative Strength %", "RelativeStrength", "RS vs Market %"]),
     }
 
 

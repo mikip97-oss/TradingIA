@@ -103,3 +103,6 @@ Dieser Sprint ergaenzt die Intelligence Pipeline um eine klare Trennung zwischen
 ## Sprint 19: Prediction Validator
 
 Dieser Sprint fuehrt eine Validierungs-Komponente unter `tradingia/validation` ein. TradingIA kann taegliche Empfehlungen als CSV speichern und spaeter mit realen oder importierten Kursdaten vergleichen. Die Auswertung berechnet Performance, Trefferquote, durchschnittliche Renditen und die beste Score-Schwelle. Es gibt keine Orders und keine Broker-Anbindung.
+## Sprint 20: Momentum Confirmation Engine
+
+Dieser Sprint fuehrt `tradingia/momentum` ein. Der neue `MomentumConfirmationScore` bewertet ausschliesslich heutige Kaufbestaetigung und wird von der Intelligence Pipeline als TodayUpScore verwendet. Gap-Ups werden nur belohnt, wenn sie gehalten werden; Gap-Fills, Abverkauf, hohes Volumen bei fallendem Kurs und negatives Intraday-Momentum reduzieren den Score. GUI und Scanner bleiben unveraendert.
