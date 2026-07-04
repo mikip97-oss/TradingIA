@@ -94,3 +94,9 @@ Dieser Sprint ergaenzt mit `FinnhubNewsProvider` den ersten echten News-Anbieter
 ## Sprint 16: Intelligence Pipeline
 
 Dieser Sprint fuehrt eine zentrale Intelligence Pipeline unter `tradingia/intelligence` ein. Sie sammelt DayTradeScore, CatalystScore und NewsScore pro Aktie, filtert relevante News nach Ticker oder Firmenname und erzeugt mit der Master Decision Engine eine finale, sortierte Rangliste. GUI und bestehende Scanner bleiben unveraendert.
+## Sprint 17: Intelligence Dashboard
+
+Dieser Sprint erweitert die bestehende PySide6-App um den Modus `Top Chancen heute`. Das Dashboard nutzt die Intelligence Pipeline, zeigt Rang, Aktie, FinalScore und Empfehlung und verwendet rechts die vorhandene Analyseflaeche fuer Score-Details und optionale News-Informationen. Die Chartansicht bleibt unveraendert, bestehende Scanner werden nicht veraendert.
+## Sprint 18: Vortages-Momentum-Korrektur
+
+Dieser Sprint ergaenzt die Intelligence Pipeline um eine klare Trennung zwischen Vortages-Momentum und heutiger Intraday-Staerke. Starke Vortagesbewegungen werden nicht mehr automatisch belohnt. Stattdessen reduzieren Overextension- und Pullback-Regeln den FinalScore, wenn die heutige Kursreaktion schwach ist, die Aktie weit vom Tageshoch entfernt notiert, der RSI ueberdehnt ist oder starke News nicht durch Preisaktion bestaetigt werden.

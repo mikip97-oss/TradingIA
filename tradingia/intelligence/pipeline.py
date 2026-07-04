@@ -20,7 +20,12 @@ PIPELINE_COLUMNS = [
     "CatalystScore",
     "NewsScore",
     "Sentiment",
+    "TodayUpScore",
+    "OverextensionPenalty",
     "wichtigste Gründe",
+    "News Headline",
+    "News Quelle",
+    "News Veröffentlichungszeit",
 ]
 
 
@@ -45,54 +50,72 @@ class IntelligencePipeline:
         if not normalized_tickers:
             return pd.DataFrame(columns=PIPELINE_COLUMNS)
 
-        daytrading_scores = self._scan_scores(
+        daytrading_rows = self._scan_rows(
             self.daytrading_scanner,
             normalized_tickers,
-            score_column="DayTradeScore",
+            required_score_column="DayTradeScore",
             max_workers=max_workers,
         )
-        catalyst_scores = self._scan_scores(
+        catalyst_rows = self._scan_rows(
             self.catalyst_scanner,
             normalized_tickers,
-            score_column="CatalystScore",
+            required_score_column="CatalystScore",
             max_workers=max_workers,
         )
 
         rows: list[dict[str, float | str]] = []
         for ticker in normalized_tickers:
-            news_result = self._score_news(ticker, news_limit)
+            day_row = daytrading_rows.get(ticker, {})
+            catalyst_row = catalyst_rows.get(ticker, {})
+            daytrade_score = _number_or_none(day_row.get("DayTradeScore"))
+            catalyst_score = _number_or_none(catalyst_row.get("CatalystScore"))
+            news_result, news_items = self._score_news(ticker, news_limit)
+            lead_news = news_items[0] if news_items else None
+            market_context = _market_context(day_row, catalyst_row)
+            today_up_score, continuation_reasons = calculate_today_up_score(market_context, news_result.news_score)
+            penalty, penalty_reasons = calculate_overextension_penalty(market_context, news_result.news_score)
+            has_intraday_context = market_context.get("today_pct") is not None
+            adjusted_daytrade_score = _adjust_score(daytrade_score, today_up_score, penalty, has_intraday_context)
+            adjusted_catalyst_score = _adjust_score(catalyst_score, today_up_score, penalty, has_intraday_context)
+            notes = news_result.reasons + continuation_reasons + penalty_reasons
             decision = self.decision_engine.score(
                 DecisionInput(
                     ticker=ticker,
-                    daytrade_score=daytrading_scores.get(ticker),
-                    catalyst_score=catalyst_scores.get(ticker),
+                    daytrade_score=adjusted_daytrade_score,
+                    catalyst_score=adjusted_catalyst_score,
                     news_score=news_result.news_score,
-                    notes=news_result.reasons,
+                    notes=notes,
                 )
             )
+            final_score = max(0.0, decision.final_score - penalty)
             rows.append(
                 {
                     "Aktie": ticker,
-                    "FinalScore": round(decision.final_score, 1),
-                    "Empfehlung": decision.recommendation,
-                    "DayTradeScore": _empty_if_none(daytrading_scores.get(ticker)),
-                    "CatalystScore": _empty_if_none(catalyst_scores.get(ticker)),
+                    "FinalScore": round(final_score, 1),
+                    "Empfehlung": _recommendation(final_score),
+                    "DayTradeScore": _empty_if_none(adjusted_daytrade_score),
+                    "CatalystScore": _empty_if_none(adjusted_catalyst_score),
                     "NewsScore": round(news_result.news_score, 1),
                     "Sentiment": news_result.sentiment.value,
-                    "wichtigste Gründe": ", ".join(decision.reasons),
+                    "TodayUpScore": round(today_up_score, 1),
+                    "OverextensionPenalty": round(penalty, 1),
+                    "wichtigste Gründe": ", ".join(_unique_reasons(decision.reasons + penalty_reasons)),
+                    "News Headline": lead_news.headline if lead_news else "",
+                    "News Quelle": lead_news.source if lead_news else "",
+                    "News Veröffentlichungszeit": _format_news_time(lead_news),
                 }
             )
 
         return pd.DataFrame(rows, columns=PIPELINE_COLUMNS).sort_values(by="FinalScore", ascending=False).reset_index(drop=True)
 
-    def _scan_scores(
+    def _scan_rows(
         self,
         scanner: PipelineScanner,
         tickers: list[str],
         *,
-        score_column: str,
+        required_score_column: str,
         max_workers: int | None,
-    ) -> dict[str, float]:
+    ) -> dict[str, dict]:
         try:
             frame = scanner(tickers=tickers, max_workers=max_workers, top_anzahl=len(tickers))
         except TypeError:
@@ -100,26 +123,22 @@ class IntelligencePipeline:
         except Exception:
             return {}
 
-        if frame is None or frame.empty or "Aktie" not in frame.columns or score_column not in frame.columns:
+        if frame is None or frame.empty or "Aktie" not in frame.columns or required_score_column not in frame.columns:
             return {}
 
-        scores: dict[str, float] = {}
+        rows: dict[str, dict] = {}
         for _, row in frame.iterrows():
             ticker = str(row.get("Aktie", "")).upper()
-            value = row.get(score_column)
-            if ticker and pd.notna(value):
-                try:
-                    scores[ticker] = float(value)
-                except (TypeError, ValueError):
-                    continue
-        return scores
+            if ticker:
+                rows[ticker] = row.to_dict()
+        return rows
 
-    def _score_news(self, ticker: str, limit: int) -> NewsScoreResult:
+    def _score_news(self, ticker: str, limit: int) -> tuple[NewsScoreResult, list[NewsItem]]:
         try:
             provider = self.news_engine.provider
             raw_news = provider.get_news(ticker, limit=limit)
             filtered_news = filter_relevant_news(raw_news, ticker, self.company_names.get(ticker.upper()))
-            return score_news_items(ticker, filtered_news)
+            return score_news_items(ticker, filtered_news), filtered_news
         except Exception as exc:
             return NewsScoreResult(
                 ticker=ticker,
@@ -127,7 +146,73 @@ class IntelligencePipeline:
                 sentiment=NewsSentiment.NEUTRAL,
                 news_count=0,
                 reasons=[f"News-Fehler: {exc}"],
-            )
+            ), []
+
+
+def calculate_today_up_score(context: dict[str, float | None], news_score: float) -> tuple[float, list[str]]:
+    score = 0.0
+    reasons: list[str] = []
+    today_pct = context.get("today_pct")
+    volume_factor = context.get("volume_factor")
+    distance_to_high_pct = context.get("distance_to_high_pct")
+    roc = context.get("roc")
+
+    if today_pct is not None and today_pct > 0:
+        score += 20
+        reasons.append("heutige Intraday-Stärke")
+    if today_pct is not None and today_pct >= 1.5:
+        score += 15
+        reasons.append("starke heutige Fortsetzung")
+    if volume_factor is not None and volume_factor >= 1.5:
+        score += 20
+        reasons.append("erhöhtes heutiges Volumen")
+    elif volume_factor is not None and volume_factor >= 1.0:
+        score += 10
+        reasons.append("Volumen bestätigt Setup")
+    if distance_to_high_pct is not None and distance_to_high_pct <= 1.0:
+        score += 20
+        reasons.append("nahe am Tageshoch")
+    if roc is not None and roc > 0:
+        score += 15
+        reasons.append("positiver heutiger ROC")
+    if news_score >= 70 and today_pct is not None and today_pct > 0:
+        score += 10
+        reasons.append("News werden durch heutige Kursreaktion bestätigt")
+
+    return min(score, 100.0), reasons
+
+
+def calculate_overextension_penalty(context: dict[str, float | None], news_score: float) -> tuple[float, list[str]]:
+    penalty = 0.0
+    reasons: list[str] = []
+    previous_day_pct = context.get("previous_day_pct")
+    today_pct = context.get("today_pct")
+    distance_to_high_pct = context.get("distance_to_high_pct")
+    rsi = context.get("rsi")
+
+    if previous_day_pct is not None and previous_day_pct >= 4 and (today_pct is None or today_pct <= 0.5):
+        penalty += 25
+        reasons.append("Risiko: starker Vortagesanstieg ohne heutige Fortsetzung")
+    if previous_day_pct is not None and previous_day_pct >= 7 and today_pct is not None and today_pct < 0:
+        penalty += 15
+        reasons.append("Risiko: Gewinnmitnahme nach überdehntem Vortag")
+    if distance_to_high_pct is not None and distance_to_high_pct >= 3:
+        penalty += 15
+        reasons.append("Risiko: weit vom Tageshoch entfernt")
+    elif distance_to_high_pct is not None and distance_to_high_pct >= 1.5:
+        penalty += 8
+        reasons.append("Risiko: nicht mehr nahe am Tageshoch")
+    if rsi is not None and rsi >= 80:
+        penalty += 12
+        reasons.append("Risiko: RSI sehr hoch")
+    elif rsi is not None and rsi >= 75:
+        penalty += 6
+        reasons.append("Risiko: RSI erhöht")
+    if news_score >= 70 and (today_pct is None or today_pct <= 0.5):
+        penalty += 18
+        reasons.append("Risiko: hohe News-Bewertung ohne starke heutige Kursreaktion")
+
+    return min(penalty, 60.0), reasons
 
 
 def filter_relevant_news(news_items: list[NewsItem], ticker: str, company_name: str | None = None) -> list[NewsItem]:
@@ -145,6 +230,47 @@ def filter_relevant_news(news_items: list[NewsItem], ticker: str, company_name: 
         if company_tokens and any(token in text for token in company_tokens):
             filtered.append(item)
     return filtered
+
+
+def _market_context(day_row: dict, catalyst_row: dict) -> dict[str, float | None]:
+    return {
+        "previous_day_pct": _first_number(day_row, catalyst_row, ["Vortag %", "Gestern %", "Previous Day %", "Vortages-Momentum"]),
+        "today_pct": _first_number(day_row, catalyst_row, ["Heute %", "Today %", "Intraday %"]),
+        "volume_factor": _first_number(day_row, catalyst_row, ["Volumen-Faktor", "Volume Factor"]),
+        "distance_to_high_pct": _first_number(day_row, catalyst_row, ["Abstand Tageshoch %", "Distanz Tageshoch %", "DistanceToHigh %", "Distance To High %"]),
+        "rsi": _first_number(day_row, catalyst_row, ["RSI"]),
+        "roc": _first_number(day_row, catalyst_row, ["ROC"]),
+    }
+
+
+def _first_number(primary: dict, secondary: dict, keys: list[str]) -> float | None:
+    for key in keys:
+        value = _number_or_none(primary.get(key))
+        if value is not None:
+            return value
+        value = _number_or_none(secondary.get(key))
+        if value is not None:
+            return value
+    return None
+
+
+def _adjust_score(score: float | None, today_up_score: float, penalty: float, has_intraday_context: bool) -> float | None:
+    if score is None:
+        return None
+    if has_intraday_context and today_up_score < 40:
+        score = min(score, 55.0)
+    adjusted = score - penalty
+    return max(0.0, min(adjusted, 100.0))
+
+
+def _recommendation(final_score: float) -> str:
+    if final_score >= 90:
+        return "⭐⭐⭐⭐⭐ Top Chance"
+    if final_score >= 80:
+        return "⭐⭐⭐⭐ Sehr interessant"
+    if final_score >= 70:
+        return "⭐⭐⭐ Beobachten"
+    return "Kein Trade"
 
 
 def _company_tokens(company_name: str | None) -> list[str]:
@@ -175,3 +301,28 @@ def _empty_if_none(value: float | None) -> float | str:
     if value is None:
         return ""
     return round(value, 1)
+
+
+def _number_or_none(value) -> float | None:
+    if value in (None, ""):
+        return None
+    try:
+        if pd.isna(value):
+            return None
+        return float(value)
+    except (TypeError, ValueError):
+        return None
+
+
+def _unique_reasons(reasons: list[str]) -> list[str]:
+    unique: list[str] = []
+    for reason in reasons:
+        if reason and reason not in unique:
+            unique.append(reason)
+    return unique[:10]
+
+
+def _format_news_time(news_item: NewsItem | None) -> str:
+    if news_item is None or news_item.published_at is None:
+        return ""
+    return news_item.published_at.isoformat(sep=" ", timespec="minutes")

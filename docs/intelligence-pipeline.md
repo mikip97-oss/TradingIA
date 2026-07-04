@@ -36,7 +36,12 @@ Die Pipeline liefert ein DataFrame mit:
 - CatalystScore
 - NewsScore
 - Sentiment
+- TodayUpScore
+- OverextensionPenalty
 - wichtigste Gruende
+- News Headline, falls vorhanden
+- News Quelle, falls vorhanden
+- News Veroeffentlichungszeit, falls vorhanden
 
 ## Beispiel
 
@@ -51,3 +56,29 @@ print(leaderboard)
 ## Robustheit
 
 Fehler in einem Scanner oder beim Laden einzelner News werden abgefangen. Die Pipeline erzeugt weiterhin eine Rangliste fuer die uebrigen verfuegbaren Signale. Dadurch bleibt sie fuer Research-Laeufe und spaetere GUI-Integration geeignet.
+
+
+## Sprint 18: Vortages-Momentum und Overextension
+
+Die Pipeline unterscheidet bewusst zwischen Vortages-Momentum und heutiger Intraday-Staerke. Ein starker Kursanstieg am Vortag erhoeht den Score nicht automatisch. Er wird nur als Risiko-Kontext genutzt, weil nach starken Bewegungen haeufig Gewinnmitnahmen folgen koennen.
+
+### TodayUpScore
+
+Der TodayUpScore belohnt nur bestaetigtes Fortsetzungs-Momentum:
+
+- heutige positive Kursreaktion
+- erhoehtes heutiges Volumen
+- Naehe zum Tageshoch
+- positiver ROC
+- relevante News, wenn der Kurs heute ebenfalls positiv reagiert
+
+### Overextension-/Pullback-Abzug
+
+Die Pipeline reduziert den Score, wenn ein Setup ueberdehnt oder nicht bestaetigt wirkt:
+
+- starker Vortagesanstieg, aber heute schwache oder negative Bewegung
+- Aktie ist weit vom Tageshoch entfernt
+- RSI ist sehr hoch
+- NewsScore ist hoch, aber die heutige Kursreaktion bleibt schwach
+
+Dadurch sollen Aktien nicht nur deshalb als Top-Kandidaten erscheinen, weil sie gestern stark gestiegen sind. Die finale Rangliste bevorzugt echte heutige Fortsetzung statt nachlaufendes Vortages-Momentum.

@@ -4,7 +4,7 @@ import yfinance as yf
 from PySide6.QtCore import QThread, Signal, QTimer
 from PySide6.QtGui import QColor
 from PySide6.QtWidgets import (
-    QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,
+    QApplication, QComboBox, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,
     QLabel, QPushButton, QTableWidget, QTableWidgetItem, QTextEdit
 )
 
@@ -12,19 +12,50 @@ from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
 
 from scanner import scan_market
+from daytrading_scanner import scan_daytrading_market
 from ai_assistant import erstelle_ki_analyse
+from tradingia.intelligence import IntelligencePipeline
+
+try:
+    from config import TOP_ANZAHL
+except ImportError:
+    TOP_ANZAHL = 50
+
+try:
+    from universe import lade_standard_universum
+except ImportError:
+    lade_standard_universum = None
 
 
 AKTUALISIERUNG_SEKUNDEN = 60
+SWING_MODE = "swing"
+DAYTRADING_MODE = "daytrading"
+INTELLIGENCE_MODE = "intelligence"
+INTELLIGENCE_COLUMNS = ["Rang", "Aktie", "FinalScore", "Empfehlung"]
+FALLBACK_INTELLIGENCE_TICKERS = [
+    "NVDA", "TSLA", "AMD", "AAPL", "MSFT",
+    "META", "AMZN", "GOOGL", "COIN", "MSTR",
+    "PLTR", "HOOD", "SOFI", "SMCI", "AVGO",
+]
 
 
 class ScannerThread(QThread):
     fertig = Signal(object)
     fehler = Signal(str)
 
+    def __init__(self, scanner_mode=SWING_MODE):
+        super().__init__()
+        self.scanner_mode = scanner_mode
+
     def run(self):
         try:
-            df = scan_market()
+            if self.scanner_mode == DAYTRADING_MODE:
+                df = scan_daytrading_market()
+            elif self.scanner_mode == INTELLIGENCE_MODE:
+                tickers = _load_intelligence_tickers()
+                df = IntelligencePipeline().run(tickers)
+            else:
+                df = scan_market()
             self.fertig.emit(df)
         except Exception as e:
             self.fehler.emit(str(e))
@@ -41,9 +72,11 @@ class TradingIAApp(QMainWindow):
         self.countdown = AKTUALISIERUNG_SEKUNDEN
         self.thread = None
         self.df = None
+        self.aktiver_modus = SWING_MODE
 
         main_layout = QVBoxLayout()
         content_layout = QHBoxLayout()
+        controls_layout = QHBoxLayout()
         right_layout = QVBoxLayout()
 
         self.title = QLabel("TradingIA Pro Scanner")
@@ -52,11 +85,21 @@ class TradingIAApp(QMainWindow):
         self.status = QLabel("Bereit.")
         self.status.setStyleSheet("font-size: 14px;")
 
+        self.scanner_mode = QComboBox()
+        self.scanner_mode.addItem("Swing Scanner", SWING_MODE)
+        self.scanner_mode.addItem("Daytrading Scanner", DAYTRADING_MODE)
+        self.scanner_mode.addItem("Top Chancen heute", INTELLIGENCE_MODE)
+
         self.button_scan = QPushButton("Scanner einmal starten")
         self.button_scan.clicked.connect(self.scanner_starten)
 
         self.button_live = QPushButton("Live-Modus starten")
         self.button_live.clicked.connect(self.live_modus_umschalten)
+
+        controls_layout.addWidget(QLabel("Scanner:"))
+        controls_layout.addWidget(self.scanner_mode)
+        controls_layout.addWidget(self.button_scan)
+        controls_layout.addWidget(self.button_live)
 
         self.table = QTableWidget()
         self.table.cellClicked.connect(self.aktie_ausgewaehlt)
@@ -77,8 +120,7 @@ class TradingIAApp(QMainWindow):
 
         main_layout.addWidget(self.title)
         main_layout.addWidget(self.status)
-        main_layout.addWidget(self.button_scan)
-        main_layout.addWidget(self.button_live)
+        main_layout.addLayout(controls_layout)
         main_layout.addLayout(content_layout)
 
         container = QWidget()
@@ -88,16 +130,21 @@ class TradingIAApp(QMainWindow):
         self.timer = QTimer()
         self.timer.timeout.connect(self.timer_tick)
 
+    def aktueller_scanner_modus(self):
+        return self.scanner_mode.currentData()
+
     def scanner_starten(self):
         if self.thread is not None and self.thread.isRunning():
             self.status.setText("Scanner läuft bereits.")
             return
 
+        self.aktiver_modus = self.aktueller_scanner_modus()
+        mode_label = self.scanner_mode.currentText()
         self.button_scan.setEnabled(False)
-        self.status.setText("Scanner läuft... bitte warten.")
-        self.ai_text.setText("Scanner läuft...")
+        self.status.setText(f"{mode_label} läuft... bitte warten.")
+        self.ai_text.setText(f"{mode_label} läuft...")
 
-        self.thread = ScannerThread()
+        self.thread = ScannerThread(scanner_mode=self.aktiver_modus)
         self.thread.fertig.connect(self.scanner_fertig)
         self.thread.fehler.connect(self.scanner_fehler)
         self.thread.start()
@@ -111,30 +158,47 @@ class TradingIAApp(QMainWindow):
             self.ai_text.setText("Keine Daten gefunden.")
             return
 
-        self.status.setText(f"Scanner fertig. {len(df)} Kandidaten gefunden.")
-        self.ai_text.setText("Klicke links auf eine Aktie für die KI-Analyse.")
+        if self.aktiver_modus == INTELLIGENCE_MODE:
+            self._intelligence_dashboard_fertig(df)
+        else:
+            self._scanner_tabelle_fertig(df)
 
+        if self.live_aktiv:
+            self.countdown = AKTUALISIERUNG_SEKUNDEN
+
+    def _scanner_tabelle_fertig(self, df):
+        self.status.setText(f"Scanner fertig. {len(df)} Kandidaten gefunden.")
+        self.ai_text.setText("Klicke links auf eine Aktie für die Analyse.")
+        self._render_table(df, list(df.columns))
+
+    def _intelligence_dashboard_fertig(self, df):
+        self.status.setText(f"Top Chancen heute fertig. {len(df)} Kandidaten bewertet.")
+        self.ai_text.setText("Klicke links auf eine Aktie für die Intelligence-Analyse.")
+        dashboard = df.copy().reset_index(drop=True)
+        dashboard.insert(0, "Rang", range(1, len(dashboard) + 1))
+        self._render_table(dashboard, INTELLIGENCE_COLUMNS)
+
+    def _render_table(self, df, columns):
         self.table.setRowCount(len(df))
-        self.table.setColumnCount(len(df.columns))
-        self.table.setHorizontalHeaderLabels(df.columns)
+        self.table.setColumnCount(len(columns))
+        self.table.setHorizontalHeaderLabels(columns)
 
         for row in range(len(df)):
-            ki = float(df.iloc[row].get("KI %", 0))
-            score = float(df.iloc[row].get("TradeScore", 0))
+            score = self._row_score(df.iloc[row])
 
-            for col in range(len(df.columns)):
-                value = str(df.iloc[row, col])
+            for col, column in enumerate(columns):
+                value = str(df.iloc[row].get(column, ""))
                 item = QTableWidgetItem(value)
 
-                if score >= 70:
+                if score >= 80:
+                    item.setBackground(QColor(0, 130, 80))
+                    item.setForeground(QColor(255, 255, 255))
+                elif score >= 70:
                     item.setBackground(QColor(0, 150, 70))
                     item.setForeground(QColor(255, 255, 255))
                 elif score >= 60:
                     item.setBackground(QColor(255, 190, 80))
                     item.setForeground(QColor(0, 0, 0))
-                elif score >= 50:
-                    item.setBackground(QColor(120, 120, 120))
-                    item.setForeground(QColor(255, 255, 255))
                 else:
                     item.setBackground(QColor(90, 90, 90))
                     item.setForeground(QColor(220, 220, 220))
@@ -142,9 +206,6 @@ class TradingIAApp(QMainWindow):
                 self.table.setItem(row, col, item)
 
         self.table.resizeColumnsToContents()
-
-        if self.live_aktiv:
-            self.countdown = AKTUALISIERUNG_SEKUNDEN
 
     def scanner_fehler(self, meldung):
         self.button_scan.setEnabled(True)
@@ -155,12 +216,46 @@ class TradingIAApp(QMainWindow):
         if self.df is None:
             return
 
-        ticker = self.table.item(row, 0).text()
+        aktie = self.df.iloc[row].to_dict()
+        ticker = str(aktie.get("Aktie", self.table.item(row, 0).text()))
         self.chart_laden(ticker)
 
-        aktie = self.df.iloc[row].to_dict()
-        analyse = erstelle_ki_analyse(aktie)
+        if self.aktiver_modus == INTELLIGENCE_MODE:
+            analyse = self._erstelle_intelligence_analyse(aktie)
+        else:
+            analyse = erstelle_ki_analyse(aktie)
         self.ai_text.setText(analyse)
+
+    def _erstelle_intelligence_analyse(self, aktie):
+        ticker = _value(aktie, "Aktie", "")
+        lines = []
+        lines.append(f"Top Chancen heute: {ticker}")
+        lines.append("=" * 40)
+        lines.append(f"FinalScore: {_format_value(_value(aktie, 'FinalScore', ''))}/100")
+        lines.append(f"Empfehlung: {_value(aktie, 'Empfehlung', '')}")
+        lines.append("")
+        lines.append("Score-Details:")
+        lines.append(f"TradeScore: {_format_value(_value(aktie, 'TradeScore', 'nicht verfügbar'))}")
+        lines.append(f"DayTradeScore: {_format_value(_value(aktie, 'DayTradeScore', 'nicht verfügbar'))}")
+        lines.append(f"CatalystScore: {_format_value(_value(aktie, 'CatalystScore', 'nicht verfügbar'))}")
+        lines.append(f"NewsScore: {_format_value(_value(aktie, 'NewsScore', 'nicht verfügbar'))}")
+        lines.append(f"KI %: {_format_value(_value(aktie, 'KI %', 'nicht verfügbar'))}")
+        lines.append(f"Marktregime: {_value(aktie, 'Market Regime', _value(aktie, 'Regime', 'nicht verfügbar'))}")
+        lines.append("")
+        lines.append("Wichtigste Gründe:")
+        lines.append(str(_value(aktie, "wichtigste Gründe", _value(aktie, "Gründe", "Keine Gründe vorhanden."))))
+
+        headline = _value(aktie, "News Headline", "")
+        if headline:
+            lines.append("")
+            lines.append("News:")
+            lines.append(f"Headline: {headline}")
+            lines.append(f"Quelle: {_value(aktie, 'News Quelle', '')}")
+            lines.append(f"Veröffentlichungszeit: {_value(aktie, 'News Veröffentlichungszeit', '')}")
+
+        lines.append("")
+        lines.append("Hinweis: Das ist keine Anlageberatung. Das Dashboard verbindet vorhandene TradingIA-Scores zu einer priorisierten Beobachtungsliste.")
+        return "\n".join(lines)
 
     def chart_laden(self, ticker):
         self.status.setText(f"Lade Chart für {ticker}...")
@@ -222,8 +317,46 @@ class TradingIAApp(QMainWindow):
             self.scanner_starten()
             self.countdown = AKTUALISIERUNG_SEKUNDEN
 
+    def _row_score(self, row):
+        for column in ["FinalScore", "TradeScore", "DayTradeScore", "Endscore", "KI %"]:
+            if column in row:
+                try:
+                    return float(row[column])
+                except (TypeError, ValueError):
+                    return 0.0
+        return 0.0
 
-app = QApplication(sys.argv)
-window = TradingIAApp()
-window.show()
-sys.exit(app.exec())
+
+def _load_intelligence_tickers():
+    if lade_standard_universum is not None:
+        try:
+            tickers = lade_standard_universum()
+            if tickers:
+                return tickers[: max(1, int(TOP_ANZAHL))]
+        except Exception:
+            pass
+    return FALLBACK_INTELLIGENCE_TICKERS[: max(1, int(TOP_ANZAHL))]
+
+
+def _value(row, key, default):
+    value = row.get(key, default)
+    return default if value is None or value == "" else value
+
+
+def _format_value(value):
+    try:
+        number = float(value)
+        return f"{number:.1f}".rstrip("0").rstrip(".")
+    except (TypeError, ValueError):
+        return str(value)
+
+
+def main():
+    app = QApplication(sys.argv)
+    window = TradingIAApp()
+    window.show()
+    sys.exit(app.exec())
+
+
+if __name__ == "__main__":
+    main()
