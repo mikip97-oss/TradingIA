@@ -106,3 +106,17 @@ Dieser Sprint fuehrt eine Validierungs-Komponente unter `tradingia/validation` e
 ## Sprint 20: Momentum Confirmation Engine
 
 Dieser Sprint fuehrt `tradingia/momentum` ein. Der neue `MomentumConfirmationScore` bewertet ausschliesslich heutige Kaufbestaetigung und wird von der Intelligence Pipeline als TodayUpScore verwendet. Gap-Ups werden nur belohnt, wenn sie gehalten werden; Gap-Fills, Abverkauf, hohes Volumen bei fallendem Kurs und negatives Intraday-Momentum reduzieren den Score. GUI und Scanner bleiben unveraendert.
+## Sprint 21: Trend Filter Engine
+
+Dieser Sprint fuehrt `tradingia/trend` ein. Der neue TrendScore bewertet EMA-Struktur, EMA-Steigungen, Kursposition, ADX sowie hoehere Hochs/Tiefs. Die Intelligence Pipeline gewichtet den Trend stark und begrenzt FinalScores in klaren Abwaertstrends, sodass Strong Downtrends nicht mehr als Top-Chancen erscheinen.
+## Sprint 22: Self Learning Engine
+
+Dieser Sprint fuehrt `tradingia/learning` ein. Die Komponente analysiert validierte Empfehlungen, berechnet Korrelationen zwischen Faktoren und spaeterer Performance und erzeugt transparente Gewichtsvorschlaege fuer die Decision Engine. `DecisionWeights` kann solche Gewichte optional laden oder jederzeit auf Standardwerte zurueckgesetzt werden.
+
+## Sprint 23: Prediction Dataset Builder
+
+Dieser Sprint fuehrt `tradingia/ml_dataset` ein. Die Komponente speichert Intelligence-Signale als fortlaufenden Trainingsdatensatz unter `data/prediction_dataset.csv`, normalisiert zentrale Score- und Indikatorfelder und legt leere Ergebnis-Spalten fuer spaetere Return- und Treffer-Labels an. Doppelte Signale fuer denselben Tag, dieselbe Uhrzeit und dieselbe Aktie werden vermieden. GUI und Scanner bleiben unveraendert.
+
+## Sprint 24: Prediction Dataset Labeler
+
+Dieser Sprint ergaenzt `tradingia/ml_dataset` um einen Labeler. Er laedt `data/prediction_dataset.csv`, sucht noch ungelabelte Signale und berechnet ueber die bestehende DataProvider-Schicht `Return_1h`, `Return_2h`, `Return_EOD` sowie die Treffer-Spalten. Bereits vorhandene Labels werden nicht ueberschrieben. GUI und Scanner bleiben unveraendert.
