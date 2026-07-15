@@ -1,6 +1,8 @@
 import sys
 import yfinance as yf
 
+from datetime import datetime
+
 from PySide6.QtCore import QThread, Signal, QTimer
 from PySide6.QtGui import QColor
 from PySide6.QtWidgets import (
@@ -15,6 +17,7 @@ from scanner import scan_market
 from daytrading_scanner import scan_daytrading_market
 from ai_assistant import erstelle_ki_analyse
 from tradingia.intelligence import IntelligencePipeline
+from tradingia.ml_dataset import append_prediction_dataset
 
 try:
     from config import TOP_ANZAHL
@@ -31,7 +34,7 @@ AKTUALISIERUNG_SEKUNDEN = 60
 SWING_MODE = "swing"
 DAYTRADING_MODE = "daytrading"
 INTELLIGENCE_MODE = "intelligence"
-INTELLIGENCE_COLUMNS = ["Rang", "Aktie", "FinalScore", "Empfehlung"]
+INTELLIGENCE_COLUMNS = ["Rang", "Aktie", "FinalScore", "Empfehlung", "TrendScore", "Trend-Klasse"]
 FALLBACK_INTELLIGENCE_TICKERS = [
     "NVDA", "TSLA", "AMD", "AAPL", "MSFT",
     "META", "AMZN", "GOOGL", "COIN", "MSTR",
@@ -172,11 +175,21 @@ class TradingIAApp(QMainWindow):
         self._render_table(df, list(df.columns))
 
     def _intelligence_dashboard_fertig(self, df):
-        self.status.setText(f"Top Chancen heute fertig. {len(df)} Kandidaten bewertet.")
+        dataset_status = self._prediction_dataset_speichern(df)
+        self.status.setText(f"Top Chancen heute fertig. {len(df)} Kandidaten bewertet. {dataset_status}")
         self.ai_text.setText("Klicke links auf eine Aktie für die Intelligence-Analyse.")
         dashboard = df.copy().reset_index(drop=True)
         dashboard.insert(0, "Rang", range(1, len(dashboard) + 1))
         self._render_table(dashboard, INTELLIGENCE_COLUMNS)
+
+    def _prediction_dataset_speichern(self, df):
+        if df is None or df.empty:
+            return "Keine Datenspeicherung notwendig."
+        try:
+            append_prediction_dataset(df, timestamp=datetime.now())
+            return "Prediction-Datensatz gespeichert."
+        except Exception as error:
+            return f"Prediction-Datensatz konnte nicht gespeichert werden: {error}"
 
     def _render_table(self, df, columns):
         self.table.setRowCount(len(df))

@@ -9,6 +9,7 @@ from daytrading_scanner import scan_daytrading_market
 from tradingia.decision import DecisionInput, MasterDecisionEngine
 from tradingia.momentum import MomentumInput, score_momentum_confirmation
 from tradingia.news import FinnhubNewsProvider, NewsIntelligenceEngine, NewsItem, NewsScoreResult, NewsSentiment
+from tradingia.trend import TrendInput, score_trend
 from tradingia.news.engine import score_news_items
 
 PipelineScanner = Callable[..., pd.DataFrame]
@@ -17,11 +18,21 @@ PIPELINE_COLUMNS = [
     "Aktie",
     "FinalScore",
     "Empfehlung",
+    "Einstiegskurs",
+    "TodayUpScore",
+    "TrendScore",
+    "MomentumConfirmationScore",
     "DayTradeScore",
     "CatalystScore",
     "NewsScore",
+    "TradeScore",
+    "KI %",
+    "RSI",
+    "ADX",
+    "ROC",
+    "Volumen-Faktor",
     "Sentiment",
-    "TodayUpScore",
+    "Trend-Klasse",
     "OverextensionPenalty",
     "wichtigste Gründe",
     "News Headline",
@@ -75,6 +86,7 @@ class IntelligencePipeline:
             market_context = _market_context(day_row, catalyst_row)
             today_up_score, continuation_reasons = calculate_today_up_score(market_context, news_result.news_score)
             penalty, penalty_reasons = calculate_overextension_penalty(market_context, news_result.news_score)
+            trend_result = calculate_trend_result(market_context)
             has_intraday_context = market_context.get("today_pct") is not None
             adjusted_daytrade_score = _adjust_score(daytrade_score, today_up_score, penalty, has_intraday_context)
             adjusted_catalyst_score = _adjust_score(catalyst_score, today_up_score, penalty, has_intraday_context)
@@ -88,17 +100,27 @@ class IntelligencePipeline:
                     notes=notes,
                 )
             )
-            final_score = max(0.0, decision.final_score - penalty)
+            final_score = _apply_trend_filter(decision.final_score - penalty, trend_result)
             rows.append(
                 {
                     "Aktie": ticker,
                     "FinalScore": round(final_score, 1),
                     "Empfehlung": _recommendation(final_score),
+                    "Einstiegskurs": _raw_number_or_empty(market_context.get("entry_price")),
+                    "TodayUpScore": round(today_up_score, 1),
+                    "TrendScore": round(trend_result.score, 1),
+                    "MomentumConfirmationScore": round(today_up_score, 1),
                     "DayTradeScore": _empty_if_none(adjusted_daytrade_score),
                     "CatalystScore": _empty_if_none(adjusted_catalyst_score),
                     "NewsScore": round(news_result.news_score, 1),
+                    "TradeScore": _empty_if_none(_first_number(day_row, catalyst_row, ["TradeScore", "Trade Score"])),
+                    "KI %": _empty_if_none(_first_number(day_row, catalyst_row, ["KI %", "KI%", "AI %", "AI%", "KI", "AI"])),
+                    "RSI": _empty_if_none(market_context.get("rsi")),
+                    "ADX": _empty_if_none(market_context.get("adx")),
+                    "ROC": _empty_if_none(market_context.get("roc")),
+                    "Volumen-Faktor": _empty_if_none(market_context.get("volume_factor")),
                     "Sentiment": news_result.sentiment.value,
-                    "TodayUpScore": round(today_up_score, 1),
+                    "Trend-Klasse": trend_result.classification.value,
                     "OverextensionPenalty": round(penalty, 1),
                     "wichtigste Gründe": ", ".join(_unique_reasons(decision.reasons + penalty_reasons)),
                     "News Headline": lead_news.headline if lead_news else "",
@@ -169,6 +191,23 @@ def calculate_today_up_score(context: dict[str, float | None], news_score: float
         reasons.append("relevante News mit heutiger Kursbestaetigung")
     return momentum.score, _unique_reasons(reasons)
 
+
+def calculate_trend_result(context: dict[str, float | None]):
+    return score_trend(
+        TrendInput(
+            close=context.get("close"),
+            ema20=context.get("ema20"),
+            ema50=context.get("ema50"),
+            ema200=context.get("ema200"),
+            ema20_slope=context.get("ema20_slope"),
+            ema50_slope=context.get("ema50_slope"),
+            ema200_slope=context.get("ema200_slope"),
+            adx=context.get("adx"),
+            higher_highs=_bool_or_none(context.get("higher_highs")),
+            higher_lows=_bool_or_none(context.get("higher_lows")),
+        )
+    )
+
 def calculate_overextension_penalty(context: dict[str, float | None], news_score: float) -> tuple[float, list[str]]:
     penalty = 0.0
     reasons: list[str] = []
@@ -221,6 +260,7 @@ def filter_relevant_news(news_items: list[NewsItem], ticker: str, company_name: 
 
 def _market_context(day_row: dict, catalyst_row: dict) -> dict[str, float | None]:
     return {
+        "entry_price": _first_number(day_row, catalyst_row, ["Einstiegskurs", "Einstieg", "Entry", "EntryPrice", "Aktueller Kurs", "Current Price", "Close", "Kurs", "Preis", "Last"]),
         "previous_day_pct": _first_number(day_row, catalyst_row, ["Vortag %", "Gestern %", "Previous Day %", "Vortages-Momentum"]),
         "today_pct": _first_number(day_row, catalyst_row, ["Heute %", "Today %", "Intraday %"]),
         "volume_factor": _first_number(day_row, catalyst_row, ["Volumen-Faktor", "Volume Factor"]),
@@ -230,6 +270,15 @@ def _market_context(day_row: dict, catalyst_row: dict) -> dict[str, float | None
         "adx": _first_number(day_row, catalyst_row, ["ADX"]),
         "gap_pct": _first_number(day_row, catalyst_row, ["Gap %", "Gap", "Gap-Up %", "GapPct"]),
         "relative_strength_pct": _first_number(day_row, catalyst_row, ["Relative Strength %", "RelativeStrength", "RS vs Market %"]),
+        "close": _first_number(day_row, catalyst_row, ["Close", "Kurs", "Preis", "Last", "Einstieg", "Einstiegskurs", "Aktueller Kurs", "Current Price"]),
+        "ema20": _first_number(day_row, catalyst_row, ["EMA20", "EMA 20"]),
+        "ema50": _first_number(day_row, catalyst_row, ["EMA50", "EMA 50"]),
+        "ema200": _first_number(day_row, catalyst_row, ["EMA200", "EMA 200"]),
+        "ema20_slope": _first_number(day_row, catalyst_row, ["EMA20 Steigung", "EMA20 Slope", "EMA20 Trend"]),
+        "ema50_slope": _first_number(day_row, catalyst_row, ["EMA50 Steigung", "EMA50 Slope", "EMA50 Trend"]),
+        "ema200_slope": _first_number(day_row, catalyst_row, ["EMA200 Steigung", "EMA200 Slope", "EMA200 Trend"]),
+        "higher_highs": _first_value(day_row, catalyst_row, ["Höhere Hochs", "Hoehere Hochs", "Higher Highs"]),
+        "higher_lows": _first_value(day_row, catalyst_row, ["Höhere Tiefs", "Hoehere Tiefs", "Higher Lows"]),
     }
 
 
@@ -241,6 +290,37 @@ def _first_number(primary: dict, secondary: dict, keys: list[str]) -> float | No
         value = _number_or_none(secondary.get(key))
         if value is not None:
             return value
+    return None
+
+
+def _apply_trend_filter(raw_final_score: float, trend_result) -> float:
+    final_score = max(0.0, raw_final_score)
+    if trend_result.has_trend_data:
+        final_score = (final_score * 0.65) + (trend_result.score * 0.35)
+    if trend_result.final_score_cap is not None:
+        final_score = min(final_score, trend_result.final_score_cap)
+    return max(0.0, final_score)
+
+
+def _first_value(primary: dict, secondary: dict, keys: list[str]):
+    for key in keys:
+        if key in primary and primary.get(key) not in (None, ""):
+            return primary.get(key)
+        if key in secondary and secondary.get(key) not in (None, ""):
+            return secondary.get(key)
+    return None
+
+
+def _bool_or_none(value) -> bool | None:
+    if isinstance(value, bool):
+        return value
+    if value in (None, ""):
+        return None
+    normalized = str(value).strip().lower()
+    if normalized in {"true", "1", "yes", "ja", "y"}:
+        return True
+    if normalized in {"false", "0", "no", "nein", "n"}:
+        return False
     return None
 
 
@@ -291,6 +371,12 @@ def _empty_if_none(value: float | None) -> float | str:
     if value is None:
         return ""
     return round(value, 1)
+
+
+def _raw_number_or_empty(value: float | None) -> float | str:
+    if value is None:
+        return ""
+    return float(value)
 
 
 def _number_or_none(value) -> float | None:

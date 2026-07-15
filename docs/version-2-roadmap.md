@@ -120,3 +120,7 @@ Dieser Sprint fuehrt `tradingia/ml_dataset` ein. Die Komponente speichert Intell
 ## Sprint 24: Prediction Dataset Labeler
 
 Dieser Sprint ergaenzt `tradingia/ml_dataset` um einen Labeler. Er laedt `data/prediction_dataset.csv`, sucht noch ungelabelte Signale und berechnet ueber die bestehende DataProvider-Schicht `Return_1h`, `Return_2h`, `Return_EOD` sowie die Treffer-Spalten. Bereits vorhandene Labels werden nicht ueberschrieben. GUI und Scanner bleiben unveraendert.
+
+## Sprint 25: Automatische Prediction-Datensammlung
+
+Dieser Sprint verbindet das Intelligence Dashboard mit dem Prediction Dataset Builder. Nach einem erfolgreichen Scan im Modus `Top Chancen heute` werden echte Ergebniszeilen automatisch in `data/prediction_dataset.csv` gespeichert. Swing- und Daytrading-Scans bleiben unveraendert, leere Ergebnisse werden ignoriert und Speicherfehler erscheinen als Statusmeldung statt die GUI zu beenden.

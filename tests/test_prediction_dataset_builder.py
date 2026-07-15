@@ -38,7 +38,7 @@ def test_normalize_prediction_rows_creates_expected_columns():
     assert normalized.loc[0, "MomentumConfirmationScore"] == 72.0
     assert normalized.loc[0, "Empfehlung"] == "Beobachten"
     for column in TARGET_COLUMNS:
-        assert normalized.loc[0, column] == ""
+        assert pd.isna(normalized.loc[0, column])
 
 
 def test_append_prediction_dataset_writes_csv_and_deduplicates(tmp_path):
@@ -72,3 +72,57 @@ def test_append_prediction_dataset_adds_new_rows_to_existing_file(tmp_path):
     combined = append_prediction_dataset(pd.DataFrame([{"Aktie": "TSLA", "FinalScore": 70}]), dataset_path, timestamp="2026-07-04 09:30:00")
 
     assert list(combined["Aktie"]) == ["AAPL", "TSLA"]
+
+
+def test_normalize_prediction_rows_uses_nan_for_missing_numeric_values():
+    normalized = normalize_prediction_rows(
+        pd.DataFrame([{"Aktie": "AAPL", "FinalScore": 80, "Empfehlung": "Kein Trade"}]),
+        timestamp="2026-07-04 10:30:00",
+    )
+
+    assert pd.isna(normalized.loc[0, "Einstiegskurs"])
+    assert pd.isna(normalized.loc[0, "RSI"])
+    assert pd.isna(normalized.loc[0, "ADX"])
+    assert pd.isna(normalized.loc[0, "ROC"])
+    assert pd.isna(normalized.loc[0, "Volumen-Faktor"])
+    assert normalized.loc[0, "FinalScore"] == 80.0
+    assert normalized.loc[0, "Empfehlung"] == "Kein Trade"
+
+
+def test_append_prediction_dataset_keeps_numeric_scores_and_existing_fields(tmp_path):
+    dataset_path = tmp_path / "prediction_dataset.csv"
+    scan_results = pd.DataFrame(
+        [
+            {
+                "Aktie": "AAPL",
+                "Einstiegskurs": 210.25,
+                "FinalScore": 88,
+                "TodayUpScore": 74,
+                "TrendScore": 69,
+                "MomentumConfirmationScore": 74,
+                "DayTradeScore": 71,
+                "CatalystScore": 65,
+                "NewsScore": 55,
+                "TradeScore": 62,
+                "KI %": 58,
+                "RSI": 61.5,
+                "ADX": 24.0,
+                "ROC": 1.7,
+                "Volumen-Faktor": 1.45,
+                "Empfehlung": "Kein Trade",
+            }
+        ]
+    )
+
+    combined = append_prediction_dataset(scan_results, dataset_path, timestamp="2026-07-04 10:30:00")
+    saved = pd.read_csv(dataset_path)
+
+    assert combined.loc[0, "Einstiegskurs"] == 210.25
+    assert saved.loc[0, "Einstiegskurs"] == 210.25
+    assert saved.loc[0, "TradeScore"] == 62.0
+    assert saved.loc[0, "KI %"] == 58.0
+    assert saved.loc[0, "RSI"] == 61.5
+    assert saved.loc[0, "ADX"] == 24.0
+    assert saved.loc[0, "ROC"] == 1.7
+    assert saved.loc[0, "Volumen-Faktor"] == 1.45
+    assert saved.loc[0, "Empfehlung"] == "Kein Trade"

@@ -301,3 +301,92 @@ def test_high_news_but_weak_price_reaction_is_not_top_candidate():
     assert result.iloc[0]["TodayUpScore"] < 40
     assert result.iloc[0]["FinalScore"] < 80
     assert "Top Chance" not in result.iloc[0]["Empfehlung"]
+
+
+def test_strong_downtrend_caps_final_score():
+    def day_scanner(tickers, max_workers=None, top_anzahl=None):
+        return pd.DataFrame(
+            [
+                {
+                    "Aktie": "DOWN",
+                    "DayTradeScore": 95,
+                    "Heute %": 2.5,
+                    "Volumen-Faktor": 2.2,
+                    "Abstand Tageshoch %": 0.3,
+                    "RSI": 62,
+                    "ROC": 2.0,
+                    "ADX": 30,
+                    "Close": 80,
+                    "EMA20": 85,
+                    "EMA50": 95,
+                    "EMA200": 110,
+                    "EMA20 Slope": -1.0,
+                    "EMA50 Slope": -0.8,
+                    "EMA200 Slope": -0.3,
+                }
+            ]
+        )
+
+    def catalyst_scanner(tickers, max_workers=None, top_anzahl=None):
+        return pd.DataFrame([{"Aktie": "DOWN", "CatalystScore": 95}])
+
+    news_engine = NewsIntelligenceEngine(MockNewsProvider({"DOWN": [{"headline": "DOWN beats earnings", "summary": "DOWN raises guidance after major deal"}]}))
+    pipeline = IntelligencePipeline(daytrading_scanner=day_scanner, catalyst_scanner=catalyst_scanner, news_engine=news_engine)
+
+    result = pipeline.run(["DOWN"])
+
+    assert result.iloc[0]["Trend-Klasse"] == "Strong Downtrend"
+    assert result.iloc[0]["FinalScore"] <= 65
+    assert "Top Chance" not in result.iloc[0]["Empfehlung"]
+
+
+def test_intelligence_pipeline_preserves_training_features_for_dataset_builder():
+    def day_scanner(tickers, max_workers=None, top_anzahl=None):
+        return pd.DataFrame(
+            [
+                {
+                    "Aktie": "AAPL",
+                    "DayTradeScore": 82,
+                    "Einstieg": 210.25,
+                    "Heute %": 1.8,
+                    "Volumen-Faktor": 1.6,
+                    "Abstand Tageshoch %": 0.5,
+                    "RSI": 65,
+                    "ADX": 26,
+                    "ROC": 1.2,
+                    "TradeScore": 64,
+                    "KI %": 59,
+                }
+            ]
+        )
+
+    pipeline = IntelligencePipeline(
+        daytrading_scanner=day_scanner,
+        catalyst_scanner=lambda tickers, max_workers=None, top_anzahl=None: pd.DataFrame([{"Aktie": "AAPL", "CatalystScore": 86}]),
+        news_engine=NewsIntelligenceEngine(MockNewsProvider()),
+    )
+
+    result = pipeline.run(["AAPL"])
+    row = result.iloc[0]
+
+    _assert_required_columns(
+        result,
+        {
+            "Einstiegskurs",
+            "MomentumConfirmationScore",
+            "TradeScore",
+            "KI %",
+            "RSI",
+            "ADX",
+            "ROC",
+            "Volumen-Faktor",
+        },
+    )
+    assert row["Einstiegskurs"] == 210.25
+    assert row["TradeScore"] == 64.0
+    assert row["KI %"] == 59.0
+    assert row["RSI"] == 65.0
+    assert row["ADX"] == 26.0
+    assert row["ROC"] == 1.2
+    assert row["Volumen-Faktor"] == 1.6
+    assert row["MomentumConfirmationScore"] == row["TodayUpScore"]

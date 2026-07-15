@@ -39,6 +39,9 @@ TARGET_COLUMNS = [
 ]
 
 PREDICTION_DATASET_COLUMNS = FEATURE_COLUMNS + TARGET_COLUMNS
+RETURN_COLUMNS = ["Return_1h", "Return_2h", "Return_EOD"]
+HIT_COLUMNS = ["Treffer_1h", "Treffer_2h", "Treffer_EOD"]
+
 
 _DEDUPLICATION_COLUMNS = ["Datum", "Uhrzeit", "Aktie"]
 
@@ -100,15 +103,15 @@ def normalize_prediction_rows(scan_results: pd.DataFrame, timestamp: datetime | 
         for column in _NUMERIC_COLUMNS:
             row[column] = _number_or_empty(_value(source_row, column))
 
-        if row["MomentumConfirmationScore"] == "":
+        if _is_empty(row["MomentumConfirmationScore"]):
             row["MomentumConfirmationScore"] = row["TodayUpScore"]
 
         for target_column in TARGET_COLUMNS:
-            row[target_column] = ""
+            row[target_column] = pd.NA
 
         rows.append(row)
 
-    return pd.DataFrame(rows, columns=PREDICTION_DATASET_COLUMNS)
+    return _coerce_dataset_dtypes(pd.DataFrame(rows, columns=PREDICTION_DATASET_COLUMNS))
 
 
 def append_prediction_dataset(
@@ -156,8 +159,19 @@ def _ensure_dataset_columns(frame: pd.DataFrame) -> pd.DataFrame:
     normalized = frame.copy()
     for column in PREDICTION_DATASET_COLUMNS:
         if column not in normalized.columns:
-            normalized[column] = ""
-    return normalized[PREDICTION_DATASET_COLUMNS]
+            normalized[column] = pd.NA if column in _NUMERIC_COLUMNS or column in RETURN_COLUMNS or column in HIT_COLUMNS else ""
+    return _coerce_dataset_dtypes(normalized[PREDICTION_DATASET_COLUMNS])
+
+
+def _coerce_dataset_dtypes(frame: pd.DataFrame) -> pd.DataFrame:
+    normalized = frame.copy()
+    for column in _NUMERIC_COLUMNS | set(RETURN_COLUMNS):
+        if column in normalized.columns:
+            normalized[column] = pd.to_numeric(normalized[column], errors="coerce")
+    for column in HIT_COLUMNS:
+        if column in normalized.columns:
+            normalized[column] = pd.to_numeric(normalized[column], errors="coerce").astype("Int64")
+    return normalized
 
 
 def _normalize_timestamp(timestamp: datetime | str | None) -> datetime:
@@ -180,12 +194,12 @@ def _value(row: pd.Series, canonical_column: str) -> Any:
     return ""
 
 
-def _number_or_empty(value: Any) -> float | str:
+def _number_or_empty(value: Any) -> Any:
     if _is_empty(value):
-        return ""
+        return pd.NA
     number = pd.to_numeric(value, errors="coerce")
     if pd.isna(number):
-        return ""
+        return pd.NA
     return float(number)
 
 
