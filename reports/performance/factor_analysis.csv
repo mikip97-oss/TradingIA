@@ -1,0 +1,10 @@
+Rang,Faktor,Korrelation Return_EOD,Trefferquote hoher Faktor %,Durchschnittsrendite hoher Faktor %,Anzahl hohe Faktorwerte,Nutzwert
+1,FinalScore,,,,0,
+2,TodayUpScore,,,,0,
+3,TrendScore,,,,0,
+4,MomentumConfirmationScore,,,,0,
+5,DayTradeScore,,,,0,
+6,CatalystScore,,,,0,
+7,NewsScore,,,,0,
+8,TradeScore,,,,0,
+9,KI %,,,,0,

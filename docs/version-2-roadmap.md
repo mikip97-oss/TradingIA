@@ -128,3 +128,7 @@ Dieser Sprint verbindet das Intelligence Dashboard mit dem Prediction Dataset Bu
 ## Sprint 26: Dataset Labeling Runner
 
 Dieser Sprint fuehrt `label_prediction_dataset.py` im Projektstamm ein. Der Runner nutzt den bestehenden Dataset Labeler, verarbeitet offene Zeilen in `data/prediction_dataset.csv`, gibt eine verstaendliche Zusammenfassung aus und behandelt fehlende Dataset-Dateien ohne langen Traceback. GUI und Scanner bleiben unveraendert.
+
+## Großpaket: Automatische Datenpipeline und Performance Center
+
+Dieses Paket fuehrt `daily_intelligence_runner.py`, `daily_labeling_runner.py`, `performance_report.py` und `tradingia/performance_center` ein. TradingIA kann damit taegliche Top-Chancen automatisch speichern, spaeter labeln und die Qualitaet der Empfehlungen ueber CSV- und HTML-Reports auswerten. GUI und Scanner bleiben stabil; es gibt keine Orders, keine Broker-Anbindung und kein Modelltraining.
