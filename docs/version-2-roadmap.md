@@ -124,3 +124,7 @@ Dieser Sprint ergaenzt `tradingia/ml_dataset` um einen Labeler. Er laedt `data/p
 ## Sprint 25: Automatische Prediction-Datensammlung
 
 Dieser Sprint verbindet das Intelligence Dashboard mit dem Prediction Dataset Builder. Nach einem erfolgreichen Scan im Modus `Top Chancen heute` werden echte Ergebniszeilen automatisch in `data/prediction_dataset.csv` gespeichert. Swing- und Daytrading-Scans bleiben unveraendert, leere Ergebnisse werden ignoriert und Speicherfehler erscheinen als Statusmeldung statt die GUI zu beenden.
+
+## Sprint 26: Dataset Labeling Runner
+
+Dieser Sprint fuehrt `label_prediction_dataset.py` im Projektstamm ein. Der Runner nutzt den bestehenden Dataset Labeler, verarbeitet offene Zeilen in `data/prediction_dataset.csv`, gibt eine verstaendliche Zusammenfassung aus und behandelt fehlende Dataset-Dateien ohne langen Traceback. GUI und Scanner bleiben unveraendert.
